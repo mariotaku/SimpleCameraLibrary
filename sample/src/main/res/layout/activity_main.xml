@@ -45,5 +45,11 @@
             android:layout_width="wrap_content"
             android:id="@+id/back_camera"
             android:layout_height="wrap_content"/>
+
+        <Button
+            android:text="Open another"
+            android:layout_width="wrap_content"
+            android:id="@+id/open_another"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 </FrameLayout>

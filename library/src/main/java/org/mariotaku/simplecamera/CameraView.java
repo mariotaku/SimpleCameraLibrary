@@ -79,6 +79,9 @@ public class CameraView extends ViewGroup {
             return camera;
         } catch (Exception e) {
             Log.e(LOGTAG, "Error opening camera", e);
+            if (mListener != null) {
+                mListener.onCameraOpeningError(e);
+            }
         }
         mOpeningCamera = null;
         mOpeningCameraId = -1;
@@ -351,14 +354,16 @@ public class CameraView extends ViewGroup {
         final int measuredHeight = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(measuredWidth, measuredHeight);
         final Camera camera = openCameraIfNeeded();
-        final Camera.Parameters parameters = camera.getParameters();
-        final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
-        final List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-        final Point previewSize = CameraUtils.getBestSize(previewSizes, measuredWidth, measuredHeight, rotation);
-        parameters.setPreviewSize(previewSize.x, previewSize.y);
-        camera.setDisplayOrientation(rotation);
-        parameters.setRotation(rotation);
-        mCameraRotation = rotation;
+        if (camera != null) {
+            final Camera.Parameters parameters = camera.getParameters();
+            final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
+            final List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+            final Point previewSize = CameraUtils.getBestSize(previewSizes, measuredWidth, measuredHeight, rotation);
+            parameters.setPreviewSize(previewSize.x, previewSize.y);
+            camera.setDisplayOrientation(rotation);
+            parameters.setRotation(rotation);
+            mCameraRotation = rotation;
+        }
         measureChild(getChildAt(0), widthMeasureSpec, heightMeasureSpec);
     }
 
@@ -388,12 +393,15 @@ public class CameraView extends ViewGroup {
         return mOpeningCamera;
     }
 
-    void releaseCamera() {
-
+    public void releaseCamera() {
         final Camera camera = mOpeningCamera;
         if (camera == null) return;
         camera.release();
         mOpeningCamera = null;
+    }
+
+    public boolean isCameraAvailable() {
+        return mOpeningCamera != null;
     }
 
     public int getOpeningCameraId() {
@@ -411,6 +419,7 @@ public class CameraView extends ViewGroup {
 
     public static interface Listener {
         void onCameraInitialized(Camera camera);
+        void onCameraOpeningError(Exception e);
     }
 
     public boolean isAutoFocusing() {

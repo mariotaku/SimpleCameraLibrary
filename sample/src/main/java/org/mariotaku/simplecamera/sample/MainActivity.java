@@ -2,6 +2,7 @@ package org.mariotaku.simplecamera.sample;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -47,6 +48,7 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
         findViewById(R.id.record_video).setOnClickListener(this);
         findViewById(R.id.front_camera).setOnClickListener(this);
         findViewById(R.id.back_camera).setOnClickListener(this);
+        findViewById(R.id.open_another).setOnClickListener(this);
         mCameraView.setCameraListener(this);
         mCameraView.setOnTouchListener(this);
     }
@@ -90,6 +92,25 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
         camera.setParameters(parameters);
 
         findViewById(R.id.front_camera).setVisibility(Camera.getNumberOfCameras() > 1 ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void onCameraOpeningError(Exception e) {
+        Toast.makeText(this, "Failed to open camera", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!mCameraView.isCameraAvailable()) {
+            mCameraView.openCamera(0);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        mCameraView.releaseCamera();
+        super.onPause();
     }
 
     @Override
@@ -232,6 +253,9 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
                 if (mRecordVideoController != null) return;
                 mCameraView.openCamera(0);
                 break;
+            }
+            case R.id.open_another: {
+                startActivity(new Intent(this, MainActivity.class));
             }
         }
     }
