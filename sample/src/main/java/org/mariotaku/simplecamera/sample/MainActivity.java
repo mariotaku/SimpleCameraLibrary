@@ -178,7 +178,7 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
                                 m.setScale(scale, scale);
                             }
                         }
-                        m.postRotate(mCameraView.getPhotoRotation());
+                        m.postRotate(mCameraView.getPictureRotation());
                         final Bitmap transformed = Bitmap.createBitmap(captured, x, y, width, height, m, true);
                         final ImageView view = new ImageView(context);
                         view.setImageBitmap(transformed);

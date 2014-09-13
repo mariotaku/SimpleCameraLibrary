@@ -94,7 +94,7 @@ public final class CameraUtils {
     }
 
 
-    static int getPhotoRotation(final int rotation, final int cameraId) {
+    static int getPictureRotation(final int rotation, final int cameraId) {
         final Camera.CameraInfo info = new Camera.CameraInfo();
         try {
             Camera.getCameraInfo(cameraId, info);

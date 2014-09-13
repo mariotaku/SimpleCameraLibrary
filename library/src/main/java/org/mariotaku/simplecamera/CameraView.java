@@ -241,7 +241,7 @@ public class CameraView extends ViewGroup {
 
     private int getVideoRotation() {
         if (mOpeningCameraId == -1) return 0;
-        return CameraUtils.getPhotoRotation(CameraUtils.getDisplayRotation(getContext()), mOpeningCameraId);
+        return CameraUtils.getPictureRotation(CameraUtils.getDisplayRotation(getContext()), mOpeningCameraId);
     }
 
     public static final class VideoRecordConfig {
@@ -475,9 +475,9 @@ public class CameraView extends ViewGroup {
         return mSingleShot;
     }
 
-    public int getPhotoRotation() {
+    public int getPictureRotation() {
         if (mOpeningCameraId == -1) return 0;
-        return CameraUtils.getPhotoRotation(CameraUtils.getDisplayRotation(getContext()), mOpeningCameraId);
+        return CameraUtils.getPictureRotation(CameraUtils.getDisplayRotation(getContext()), mOpeningCameraId);
     }
 
     private static class InternalPictureCallback implements Camera.PictureCallback {
