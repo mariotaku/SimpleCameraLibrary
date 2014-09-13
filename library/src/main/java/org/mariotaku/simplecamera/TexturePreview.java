@@ -38,6 +38,11 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
     }
 
     @Override
+    public boolean isAttachedToCameraView() {
+        return mTextureView.getParent() == mCameraView;
+    }
+
+    @Override
     public boolean getDisplayBounds(Rect bounds) {
         final Camera camera = mCameraView.getOpeningCamera();
         final int width = mCameraView.getWidth(), height = mCameraView.getHeight();

@@ -11,5 +11,7 @@ public interface Preview {
 
     void layoutPreview(boolean changed, int l, int t, int r, int b);
 
+    boolean isAttachedToCameraView();
+
     boolean getDisplayBounds(Rect bounds);
 }

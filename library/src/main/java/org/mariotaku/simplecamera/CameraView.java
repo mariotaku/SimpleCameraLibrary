@@ -54,15 +54,20 @@ public class CameraView extends ViewGroup {
     }
 
     private void initPreview() {
-        removeAllViews();
+        if (getChildCount() > 0) throw new IllegalStateException("Preview has already initialized");
         mPreview = createPreview();
         addViewInternal(mPreview.getView());
+    }
+
+    private void restartPreview() {
+        removeAllViews();
+        initPreview();
     }
 
     public void openCamera(int cameraId) {
         if (mCameraId == cameraId) return;
         mCameraId = cameraId;
-        initPreview();
+        restartPreview();
     }
 
     private Camera openCameraSafely(final int cameraId) {
@@ -393,7 +398,9 @@ public class CameraView extends ViewGroup {
             camera.setParameters(parameters);
             mCameraRotation = rotation;
         }
-        measureChild(getChildAt(0), widthMeasureSpec, heightMeasureSpec);
+        final View child = getChildAt(0);
+        if (child == null) return;
+        measureChild(child, widthMeasureSpec, heightMeasureSpec);
     }
 
     protected Point getOverrideMeasureSize() {
@@ -401,6 +408,7 @@ public class CameraView extends ViewGroup {
     }
 
     public boolean getDisplayBounds(Rect bounds) {
+        if (mPreview == null) return false;
         return mPreview.getDisplayBounds(bounds);
     }
 
@@ -411,6 +419,7 @@ public class CameraView extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        if (mPreview == null || !mPreview.isAttachedToCameraView()) return;
         mPreview.layoutPreview(changed, l, t, r, b);
     }
 
