@@ -372,13 +372,25 @@ public class CameraView extends ViewGroup {
             final Camera.Parameters parameters = camera.getParameters();
             final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
             final List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-            final Point previewSize = CameraUtils.getBestSize(previewSizes, measuredWidth, measuredHeight, rotation);
+            final Point overrideMeasureSize = getOverrideMeasureSize();
+            final Point previewSize;
+            if (overrideMeasureSize != null) {
+                previewSize = CameraUtils.getBestSize(previewSizes, overrideMeasureSize.x,
+                        overrideMeasureSize.y, rotation);
+            } else {
+                previewSize = CameraUtils.getBestSize(previewSizes, measuredWidth, measuredHeight,
+                        rotation);
+            }
             parameters.setPreviewSize(previewSize.x, previewSize.y);
             camera.setDisplayOrientation(rotation);
             parameters.setRotation(rotation);
             mCameraRotation = rotation;
         }
         measureChild(getChildAt(0), widthMeasureSpec, heightMeasureSpec);
+    }
+
+    protected Point getOverrideMeasureSize() {
+        return null;
     }
 
     public boolean getDisplayBounds(Rect bounds) {
