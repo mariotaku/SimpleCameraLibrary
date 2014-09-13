@@ -381,7 +381,12 @@ public class CameraView extends ViewGroup {
                 previewSize = CameraUtils.getBestSize(previewSizes, measuredWidth, measuredHeight,
                         rotation);
             }
-            parameters.setPreviewSize(previewSize.x, previewSize.y);
+            if (previewSize != null) {
+                parameters.setPreviewSize(previewSize.x, previewSize.y);
+            } else {
+                final Point largest = CameraUtils.getLargestSize(previewSizes);
+                parameters.setPreviewSize(largest.x, largest.y);
+            }
             camera.setDisplayOrientation(rotation);
             parameters.setRotation(rotation);
             mCameraRotation = rotation;

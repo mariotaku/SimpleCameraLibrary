@@ -144,7 +144,7 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
                         final BitmapFactory.Options o = new BitmapFactory.Options();
                         o.inJustDecodeBounds = true;
                         BitmapFactory.decodeByteArray(data, 0, data.length, o);
-                        final int requiredWidth = 256, requiredHeight = 256;
+                        final int requiredWidth = 320, requiredHeight = 320;
                         final float widthRatio = o.outWidth / (float) requiredWidth;
                         final float heightRatio = o.outHeight / (float) requiredHeight;
                         o.inJustDecodeBounds = false;

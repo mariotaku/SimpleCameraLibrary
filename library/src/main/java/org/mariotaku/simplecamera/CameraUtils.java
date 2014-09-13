@@ -8,6 +8,7 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -52,19 +53,24 @@ public final class CameraUtils {
         }
     }
 
+    public static Point getLargestSize(final List<Camera.Size> list) {
+        final ArrayList<Camera.Size> sorted = new ArrayList<>(list);
+        Collections.sort(sorted, CAMERA_SIZE_COMPARATOR);
+        final Camera.Size size = sorted.get(sorted.size() - 1);
+        return new Point(size.width, size.height);
+    }
+
     public static Point getBestSize(final List<Camera.Size> list, final int width, final int height, int rotation) {
         if (list.isEmpty()) return null;
         final boolean swap = rotation % 180 != 0;
         final int requiredWidth = swap ? height : width, requiredHeight = swap ? width : height;
-
-        Collections.sort(list, CAMERA_SIZE_COMPARATOR);
-        for (final Camera.Size size : list) {
+        final ArrayList<Camera.Size> sorted = new ArrayList<>(list);
+        Collections.sort(sorted, CAMERA_SIZE_COMPARATOR);
+        for (final Camera.Size size : sorted) {
             if (size.width >= requiredWidth && size.height >= requiredHeight)
                 return new Point(size.width, size.height);
         }
-
-        final Camera.Size max = list.get(list.size() - 1);
-        return new Point(max.width, max.height);
+        return null;
     }
 
     public static int clamp(final int num, final int max, final int min) {
