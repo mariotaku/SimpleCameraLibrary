@@ -368,7 +368,7 @@ public class CameraView extends ViewGroup {
         final int measuredHeight = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(measuredWidth, measuredHeight);
         final Camera camera = openCameraIfNeeded();
-        if (camera != null) {
+        if (camera != null && !isInEditMode()) {
             final Camera.Parameters parameters = camera.getParameters();
             final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
             final List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
