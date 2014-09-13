@@ -30,7 +30,7 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
     private static final String LOGTAG = "SimpleCameraSample";
     private CameraView mCameraView;
     private FocusAreaView mFocusAreaView;
-    private CameraView.VideoRecordController mRecordVideoController;
+    private CameraView.VideoRecordTransaction mRecordVideoController;
 
     @Override
     public void onContentChanged() {

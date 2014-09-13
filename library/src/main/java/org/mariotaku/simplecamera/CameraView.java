@@ -90,13 +90,13 @@ public class CameraView extends ViewGroup {
     }
 
 
-    public static final class VideoRecordController {
+    public static final class VideoRecordTransaction {
 
         private final CameraView cameraView;
         private final VideoRecordConfig config;
         private final VideoRecordCallback callback;
 
-        VideoRecordController(CameraView cameraView, VideoRecordConfig config, VideoRecordCallback callback) {
+        VideoRecordTransaction(CameraView cameraView, VideoRecordConfig config, VideoRecordCallback callback) {
             this.cameraView = cameraView;
             this.config = config;
             this.callback = callback;
@@ -311,7 +311,7 @@ public class CameraView extends ViewGroup {
         }
     }
 
-    public VideoRecordController recordVideo(VideoRecordConfig config, VideoRecordCallback callback) {
+    public VideoRecordTransaction recordVideo(VideoRecordConfig config, VideoRecordCallback callback) {
         if (mRecorder != null) {
             throw new IllegalStateException();
         }
@@ -320,7 +320,7 @@ public class CameraView extends ViewGroup {
         setCurrentMediaRecorder(recorder);
         final Thread recordThread = new Thread(new RecordVideoRunnable(this, recorder, config, callback));
         recordThread.start();
-        return new VideoRecordController(this, config, callback);
+        return new VideoRecordTransaction(this, config, callback);
     }
 
     public Camera.Size getPreviewSize() {
