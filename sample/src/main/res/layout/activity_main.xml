@@ -1,0 +1,49 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:animateLayoutChanges="true"
+             tools:context="org.mariotaku.simplecamera.sample.MainActivity">
+
+    <org.mariotaku.simplecamera.CameraView
+        android:id="@+id/camera_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"/>
+
+    <org.mariotaku.simplecamera.sample.FocusAreaView
+        android:id="@+id/focus_area"
+        android:layout_width="@dimen/size_focus_area"
+        android:layout_height="@dimen/size_focus_area"
+        android:visibility="gone"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <Button
+            android:text="Take photo"
+            android:layout_width="wrap_content"
+            android:id="@+id/take_photo"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:text="Record video"
+            android:layout_width="wrap_content"
+            android:id="@+id/record_video"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:text="Front"
+            android:layout_width="wrap_content"
+            android:id="@+id/front_camera"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:text="Back"
+            android:layout_width="wrap_content"
+            android:id="@+id/back_camera"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</FrameLayout>
