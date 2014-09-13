@@ -95,12 +95,22 @@ public class CameraView extends ViewGroup {
         private final CameraView cameraView;
         private final VideoRecordConfig config;
         private final VideoRecordCallback callback;
+        private Object extra;
+
+        public Object getExtra() {
+            return extra;
+        }
+
+        public void setExtra(Object extra) {
+            this.extra = extra;
+        }
 
         VideoRecordTransaction(CameraView cameraView, VideoRecordConfig config, VideoRecordCallback callback) {
             this.cameraView = cameraView;
             this.config = config;
             this.callback = callback;
         }
+
 
         public VideoRecordConfig getConfig() {
             return config;
