@@ -50,7 +50,7 @@ public class CameraView extends ViewGroup {
     public CameraView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         setClipChildren(false);
-        initPreview();
+        mCameraId = -1;
     }
 
     private void initPreview() {
@@ -60,6 +60,7 @@ public class CameraView extends ViewGroup {
     }
 
     public void openCamera(int cameraId) {
+        if (mCameraId == cameraId) return;
         mCameraId = cameraId;
         initPreview();
     }
@@ -67,6 +68,7 @@ public class CameraView extends ViewGroup {
     private Camera openCameraSafely(final int cameraId) {
         final Camera oldCamera = mOpeningCamera;
         if (oldCamera != null) {
+            if (mOpeningCameraId == cameraId) return oldCamera;
             oldCamera.release();
         }
         try {
@@ -206,7 +208,6 @@ public class CameraView extends ViewGroup {
                 recorder.setProfile(config.profile);
                 config.applyOutputFile(recorder);
                 recorder.setOrientationHint(cameraView.getVideoRotation());
-//                cameraView.previewStrategy.attach(recorder);
                 if (config.maxDuration != 0) {
                     recorder.setMaxDuration(config.maxDuration);
                 }
@@ -389,6 +390,7 @@ public class CameraView extends ViewGroup {
             }
             camera.setDisplayOrientation(rotation);
             parameters.setRotation(rotation);
+            camera.setParameters(parameters);
             mCameraRotation = rotation;
         }
         measureChild(getChildAt(0), widthMeasureSpec, heightMeasureSpec);

@@ -31,7 +31,7 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
     private static final String LOGTAG = "SimpleCameraSample";
     private CameraView mCameraView;
     private FocusAreaView mFocusAreaView;
-    private CameraView.VideoRecordTransaction mRecordVideoController;
+    private CameraView.VideoRecordTransaction mRecordVideoTransaction;
 
     @Override
     public void onContentChanged() {
@@ -117,7 +117,7 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
     public boolean onTouch(View view, MotionEvent event) {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_UP: {
-                if (mRecordVideoController != null) return true;
+                if (mRecordVideoTransaction != null) return true;
                 if (mCameraView.touchFocus(event, new Camera.AutoFocusCallback() {
                     @Override
                     public void onAutoFocus(boolean b, Camera camera) {
@@ -136,7 +136,7 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
     public void onClick(final View view) {
         switch (view.getId()) {
             case R.id.take_photo: {
-                if (mRecordVideoController != null || !mCameraView.isAutoFocusing()) return;
+                if (mRecordVideoTransaction != null || !mCameraView.isAutoFocusing()) return;
                 mCameraView.takePicture(null, new Camera.PictureCallback() {
                     @Override
                     public void onPictureTaken(byte[] data, Camera camera) {
@@ -211,15 +211,15 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
                 break;
             }
             case R.id.record_video: {
-                if (mRecordVideoController != null) {
-                    mRecordVideoController.stop();
-                    mRecordVideoController = null;
+                if (mRecordVideoTransaction != null) {
+                    mRecordVideoTransaction.stop();
+                    mRecordVideoTransaction = null;
                     break;
                 }
                 final CameraView.VideoRecordConfig config = mCameraView.newVideoRecordConfig();
                 config.setOutputPath(new File(getExternalCacheDir(), System.currentTimeMillis() + ".mp4").getAbsolutePath());
                 config.setMaxDuration(10000);
-                mRecordVideoController = mCameraView.recordVideo(config, new CameraView.VideoRecordCallback() {
+                mRecordVideoTransaction = mCameraView.recordVideo(config, new CameraView.VideoRecordCallback() {
                     @Override
                     public void onRecordStarted() {
                         Log.d(LOGTAG, "Record started");
@@ -252,12 +252,12 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
                 break;
             }
             case R.id.front_camera: {
-                if (mRecordVideoController != null) return;
+                if (mRecordVideoTransaction != null) return;
                 mCameraView.openCamera(1);
                 break;
             }
             case R.id.back_camera: {
-                if (mRecordVideoController != null) return;
+                if (mRecordVideoTransaction != null) return;
                 mCameraView.openCamera(0);
                 break;
             }

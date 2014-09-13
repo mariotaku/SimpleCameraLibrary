@@ -1,9 +1,11 @@
 package org.mariotaku.simplecamera;
 
+import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -21,7 +23,7 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
 
     public TexturePreview(CameraView cameraView) {
         mCameraView = cameraView;
-        mTextureView = new TextureView(cameraView.getContext());
+        mTextureView = new InternalTextureView(cameraView.getContext());
         mTextureView.setSurfaceTextureListener(this);
     }
 
@@ -119,5 +121,29 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
 
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+    }
+
+    private class InternalTextureView extends TextureView {
+        public InternalTextureView(Context context) {
+            super(context);
+        }
+
+
+        @Override
+        public void invalidate(Rect dirty) {
+            super.invalidate(dirty);
+            Log.d("SimpleCameraView", String.format("invalidate, %s", dirty));
+        }
+
+        @Override
+        public void invalidate(int l, int t, int r, int b) {
+            super.invalidate(l, t, r, b);
+            Log.d("SimpleCameraView", String.format("invalidate, l:%d, t:%d, r:%d, b:%d", l, t, r, b));
+        }
+
+        @Override
+        public void invalidate() {
+            super.invalidate();
+        }
     }
 }
