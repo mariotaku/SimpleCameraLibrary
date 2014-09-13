@@ -41,7 +41,7 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
         final int width = mCameraView.getWidth(), height = mCameraView.getHeight();
         if (camera == null || width == 0 || height == 0) return false;
         final Camera.Size size = camera.getParameters().getPreviewSize();
-        final int rotation = Utils.getDisplayRotation(mCameraView.getContext());
+        final int rotation = CameraUtils.getDisplayRotation(mCameraView.getContext());
         final boolean isPortrait = rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180;
         final int cameraWidth = isPortrait ? size.height : size.width;
         final int cameraHeight = isPortrait ? size.width : size.height;
@@ -78,7 +78,7 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
 
     private void updateSurface(final Camera camera, final int width, final int height) {
         final Camera.Size size = camera.getParameters().getPreviewSize();
-        final int rotation = Utils.getDisplayRotation(mCameraView.getContext());
+        final int rotation = CameraUtils.getDisplayRotation(mCameraView.getContext());
         final boolean isPortrait;
         if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180) {
             isPortrait = true;

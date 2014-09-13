@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Created by mariotaku on 14-9-9.
  */
-class Utils {
+public final class CameraUtils {
 
     private static Comparator<Camera.Size> CAMERA_SIZE_COMPARATOR = new Comparator<Camera.Size>() {
         @Override
@@ -52,7 +52,7 @@ class Utils {
         }
     }
 
-    static Point getMaxSize(final List<Camera.Size> list, final int width, final int height, int rotation) {
+    public static Point getBestSize(final List<Camera.Size> list, final int width, final int height, int rotation) {
         if (list.isEmpty()) return null;
         final boolean swap = rotation % 180 != 0;
         final int requiredWidth = swap ? height : width, requiredHeight = swap ? width : height;

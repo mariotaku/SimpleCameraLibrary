@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -213,6 +214,11 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
                     public void onRecordStopped() {
                         Log.d(LOGTAG, "Record stopped");
                         ((TextView) view).setText("Start recording");
+                    }
+
+                    @Override
+                    public void onInfo(MediaRecorder mr, int what, int extra) {
+
                     }
                 });
                 break;

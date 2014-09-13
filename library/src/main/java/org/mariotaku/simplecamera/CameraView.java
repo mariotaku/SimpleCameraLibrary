@@ -124,7 +124,6 @@ public class CameraView extends ViewGroup {
                 try {
                     camera.reconnect();
                 } catch (IOException e) {
-                    //TODO
                 }
                 camera.startPreview();
             }
@@ -152,7 +151,7 @@ public class CameraView extends ViewGroup {
         return mRecorder;
     }
 
-    public interface VideoRecordCallback {
+    public interface VideoRecordCallback extends MediaRecorder.OnInfoListener {
         void onRecordStarted();
 
         void onRecordError(Exception e);
@@ -183,6 +182,7 @@ public class CameraView extends ViewGroup {
             try {
                 camera.unlock();
                 recorder.setCamera(camera);
+                recorder.setOnInfoListener(callback);
                 recorder.setAudioSource(config.audioSource);
                 recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
                 recorder.setProfile(config.profile);
@@ -241,7 +241,7 @@ public class CameraView extends ViewGroup {
 
     private int getVideoRotation() {
         if (mOpeningCameraId == -1) return 0;
-        return Utils.getPhotoRotation(Utils.getDisplayRotation(getContext()), mOpeningCameraId);
+        return CameraUtils.getPhotoRotation(CameraUtils.getDisplayRotation(getContext()), mOpeningCameraId);
     }
 
     public static final class VideoRecordConfig {
@@ -271,9 +271,7 @@ public class CameraView extends ViewGroup {
 
         VideoRecordConfig(int cameraId) {
             setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-//            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
             setProfile(CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH));
-            //TODO
         }
 
         void setReadOnly() {
@@ -315,7 +313,6 @@ public class CameraView extends ViewGroup {
 
     public VideoRecordController recordVideo(VideoRecordConfig config, VideoRecordCallback callback) {
         if (mRecorder != null) {
-            //TODO
             throw new IllegalStateException();
         }
         config.setReadOnly();
@@ -340,9 +337,9 @@ public class CameraView extends ViewGroup {
         setMeasuredDimension(measuredWidth, measuredHeight);
         final Camera camera = openCameraIfNeeded();
         final Camera.Parameters parameters = camera.getParameters();
-        final int rotation = Utils.getCameraRotation(Utils.getDisplayRotation(getContext()), getOpeningCameraId());
+        final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
         final List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-        final Point previewSize = Utils.getMaxSize(previewSizes, measuredWidth, measuredHeight, rotation);
+        final Point previewSize = CameraUtils.getBestSize(previewSizes, measuredWidth, measuredHeight, rotation);
         parameters.setPreviewSize(previewSize.x, previewSize.y);
         camera.setDisplayOrientation(rotation);
         parameters.setRotation(rotation);
@@ -429,10 +426,10 @@ public class CameraView extends ViewGroup {
             final float pointLeft = bounds.left + bounds.width() * xRatio;
             final float pointTop = bounds.top + bounds.height() * yRatio;
             final Rect focusRect = new Rect();
-            final int l = Utils.clamp(Math.round((pointLeft - touchW / 2) / cameraWidth * 2000 - 1000), 1000, -1000);
-            final int t = Utils.clamp(Math.round((pointTop - touchH / 2) / cameraHeight * 2000 - 1000), 1000, -1000);
-            final int r = Utils.clamp(Math.round((pointLeft + touchW / 2) / cameraWidth * 2000 - 1000), 1000, -1000);
-            final int b = Utils.clamp(Math.round((pointTop + touchH / 2) / cameraHeight * 2000 - 1000), 1000, -1000);
+            final int l = CameraUtils.clamp(Math.round((pointLeft - touchW / 2) / cameraWidth * 2000 - 1000), 1000, -1000);
+            final int t = CameraUtils.clamp(Math.round((pointTop - touchH / 2) / cameraHeight * 2000 - 1000), 1000, -1000);
+            final int r = CameraUtils.clamp(Math.round((pointLeft + touchW / 2) / cameraWidth * 2000 - 1000), 1000, -1000);
+            final int b = CameraUtils.clamp(Math.round((pointTop + touchH / 2) / cameraHeight * 2000 - 1000), 1000, -1000);
             switch (rotation) {
                 case 270: {
                     focusRect.set(-b, l, -t, r);
@@ -480,7 +477,7 @@ public class CameraView extends ViewGroup {
 
     public int getPhotoRotation() {
         if (mOpeningCameraId == -1) return 0;
-        return Utils.getPhotoRotation(Utils.getDisplayRotation(getContext()), mOpeningCameraId);
+        return CameraUtils.getPhotoRotation(CameraUtils.getDisplayRotation(getContext()), mOpeningCameraId);
     }
 
     private static class InternalPictureCallback implements Camera.PictureCallback {
