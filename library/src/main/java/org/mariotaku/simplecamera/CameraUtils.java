@@ -98,7 +98,7 @@ public final class CameraUtils {
                 }
             }
         }
-        return CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+        return null;
     }
 
 
