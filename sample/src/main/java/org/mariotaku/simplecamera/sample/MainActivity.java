@@ -218,6 +218,7 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
                 }
                 final CameraView.VideoRecordConfig config = mCameraView.newVideoRecordConfig();
                 config.setOutputPath(new File(getExternalCacheDir(), System.currentTimeMillis() + ".mp4").getAbsolutePath());
+                config.setMaxDuration(10000);
                 mRecordVideoController = mCameraView.recordVideo(config, new CameraView.VideoRecordCallback() {
                     @Override
                     public void onRecordStarted() {
@@ -239,7 +240,13 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
 
                     @Override
                     public void onInfo(MediaRecorder mr, int what, int extra) {
-
+                        switch (what) {
+                            case MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED: {
+                                Log.d(LOGTAG, "Record stopped");
+                                ((TextView) view).setText("Start recording");
+                                break;
+                            }
+                        }
                     }
                 });
                 break;

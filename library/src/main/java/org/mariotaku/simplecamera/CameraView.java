@@ -207,6 +207,9 @@ public class CameraView extends ViewGroup {
                 config.applyOutputFile(recorder);
                 recorder.setOrientationHint(cameraView.getVideoRotation());
 //                cameraView.previewStrategy.attach(recorder);
+                if (config.maxDuration != 0) {
+                    recorder.setMaxDuration(config.maxDuration);
+                }
                 recorder.prepare();
                 recorder.start();
                 cameraView.videoRecordStarted = true;
@@ -268,6 +271,7 @@ public class CameraView extends ViewGroup {
         private int audioSource;
         private FileDescriptor outputFileDescriptor;
         private boolean readOnly;
+        private int maxDuration;
 
         public String getOutputPath() {
             return outputPath;
@@ -294,6 +298,16 @@ public class CameraView extends ViewGroup {
 
         void setReadOnly() {
             this.readOnly = true;
+        }
+
+        public int getMaxDuration() {
+            return maxDuration;
+        }
+
+        public void setMaxDuration(int maxDuration) {
+            checkReadable();
+
+            this.maxDuration = maxDuration;
         }
 
         public void setOutputFileDescriptor(FileDescriptor outputFileDescriptor) {
@@ -419,6 +433,7 @@ public class CameraView extends ViewGroup {
 
     public static interface Listener {
         void onCameraInitialized(Camera camera);
+
         void onCameraOpeningError(Exception e);
     }
 
