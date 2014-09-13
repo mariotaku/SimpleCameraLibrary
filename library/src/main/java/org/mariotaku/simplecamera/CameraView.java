@@ -33,6 +33,7 @@ public class CameraView extends ViewGroup {
     private int mCameraId;
     private MediaRecorder mRecorder;
     private boolean videoRecordStarted;
+    private boolean mAutoFocusing;
 
     public int getCameraRotation() {
         return mCameraRotation;
@@ -87,6 +88,10 @@ public class CameraView extends ViewGroup {
     public VideoRecordConfig newVideoRecordConfig() {
         if (mOpeningCameraId == -1) return null;
         return new VideoRecordConfig(mOpeningCameraId);
+    }
+
+    public void setAutoFocusing(boolean autoFocusing) {
+        this.mAutoFocusing = autoFocusing;
     }
 
 
@@ -408,6 +413,10 @@ public class CameraView extends ViewGroup {
         void onCameraInitialized(Camera camera);
     }
 
+    public boolean isAutoFocusing() {
+        return mAutoFocusing;
+    }
+
     public boolean isAutoFocusSupported() {
         final Camera camera = getOpeningCamera();
         if (camera == null) return false;
@@ -415,7 +424,9 @@ public class CameraView extends ViewGroup {
         return parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO);
     }
 
+
     public boolean touchFocus(MotionEvent event, Camera.AutoFocusCallback callback) {
+        if (mAutoFocusing) return false;
         final Rect bounds = new Rect();
         final Camera camera = getOpeningCamera();
         final Camera.Size size = getPreviewSize();
@@ -467,8 +478,28 @@ public class CameraView extends ViewGroup {
             parameters.setMeteringAreas(null);
         }
         camera.setParameters(parameters);
-        camera.autoFocus(callback);
+        setAutoFocusing(true);
+        camera.autoFocus(new InternalAutoFocusCallback(this, callback));
         return true;
+    }
+
+    private static class InternalAutoFocusCallback implements Camera.AutoFocusCallback {
+
+        private final CameraView cameraView;
+        private final Camera.AutoFocusCallback callback;
+
+        InternalAutoFocusCallback(CameraView cameraView, Camera.AutoFocusCallback callback) {
+            this.cameraView = cameraView;
+            this.callback = callback;
+        }
+
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+            if (callback != null) {
+                callback.onAutoFocus(success, camera);
+            }
+            cameraView.setAutoFocusing(false);
+        }
     }
 
     public void takePicture(final Camera.ShutterCallback shutter, final Camera.PictureCallback jpeg) {
