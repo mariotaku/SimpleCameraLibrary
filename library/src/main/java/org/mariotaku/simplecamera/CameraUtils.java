@@ -3,11 +3,11 @@ package org.mariotaku.simplecamera;
 import android.content.Context;
 import android.graphics.Point;
 import android.hardware.Camera;
+import android.media.CamcorderProfile;
 import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
-import java.io.Closeable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -84,13 +84,21 @@ public final class CameraUtils {
         return display.getRotation();
     }
 
-    public static void closeSilently(Closeable closeable) {
-        if (closeable == null) return;
-        try {
-            closeable.close();
-        } catch (Exception e) {
-            //Ignore
+    public static CamcorderProfile getBestVideoProfile(int cameraId, int width, int height, int rotation) {
+        final int[] qualities = {CamcorderProfile.QUALITY_LOW, CamcorderProfile.QUALITY_CIF,
+                CamcorderProfile.QUALITY_480P, CamcorderProfile.QUALITY_720P,
+                CamcorderProfile.QUALITY_1080P, CamcorderProfile.QUALITY_HIGH};
+        final boolean swap = rotation % 180 != 0;
+        final int requiredWidth = swap ? height : width, requiredHeight = swap ? width : height;
+        for (int quality : qualities) {
+            if (CamcorderProfile.hasProfile(cameraId, quality)) {
+                final CamcorderProfile profile = CamcorderProfile.get(cameraId, quality);
+                if (profile.videoFrameWidth >= requiredWidth && profile.videoFrameHeight >= requiredHeight) {
+                    return profile;
+                }
+            }
         }
+        return CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
     }
 
 
