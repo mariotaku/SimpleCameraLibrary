@@ -136,7 +136,7 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
     public void onClick(final View view) {
         switch (view.getId()) {
             case R.id.take_photo: {
-                if (mRecordVideoTransaction != null || !mCameraView.isAutoFocusing()) return;
+                if (mRecordVideoTransaction != null || mCameraView.isAutoFocusing()) return;
                 mCameraView.takePicture(null, new Camera.PictureCallback() {
                     @Override
                     public void onPictureTaken(byte[] data, Camera camera) {
