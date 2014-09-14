@@ -394,7 +394,7 @@ public class CameraView extends ViewGroup {
                 parameters.setPreviewSize(largest.x, largest.y);
             }
             camera.setDisplayOrientation(rotation);
-            parameters.setRotation(rotation);
+//            parameters.setRotation(rotation);
             camera.setParameters(parameters);
             mCameraRotation = rotation;
         }
