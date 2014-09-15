@@ -2,54 +2,60 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             android:animateLayoutChanges="true"
              tools:context="org.mariotaku.simplecamera.sample.MainActivity">
 
-    <org.mariotaku.simplecamera.CameraView
-        android:id="@+id/camera_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"/>
+    <FrameLayout
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_gravity="center"
+        android:animateLayoutChanges="true">
 
-    <org.mariotaku.simplecamera.sample.FocusAreaView
-        android:id="@+id/focus_area"
-        android:layout_width="@dimen/size_focus_area"
-        android:layout_height="@dimen/size_focus_area"
-        android:visibility="gone"/>
+        <org.mariotaku.simplecamera.sample.MyCameraView
+            android:id="@+id/camera_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <org.mariotaku.simplecamera.sample.FocusAreaView
+            android:id="@+id/focus_area"
+            android:layout_width="@dimen/size_focus_area"
+            android:layout_height="@dimen/size_focus_area"
+            android:visibility="gone"/>
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <Button
-            android:text="Take photo"
-            android:layout_width="wrap_content"
             android:id="@+id/take_photo"
-            android:layout_height="wrap_content"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Take photo"/>
 
         <Button
-            android:text="Record video"
-            android:layout_width="wrap_content"
             android:id="@+id/record_video"
-            android:layout_height="wrap_content"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Record video"/>
 
         <Button
-            android:text="Front"
-            android:layout_width="wrap_content"
             android:id="@+id/front_camera"
-            android:layout_height="wrap_content"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Front"/>
 
         <Button
-            android:text="Back"
-            android:layout_width="wrap_content"
             android:id="@+id/back_camera"
-            android:layout_height="wrap_content"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"/>
 
         <Button
-            android:text="Open another"
-            android:layout_width="wrap_content"
             android:id="@+id/open_another"
-            android:layout_height="wrap_content"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Open another"/>
     </LinearLayout>
 </FrameLayout>

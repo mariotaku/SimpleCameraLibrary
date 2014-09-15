@@ -35,37 +35,13 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
     @Override
     public void layoutPreview(boolean changed, int l, int t, int r, int b) {
         mTextureView.layout(mLeft, mTop, mLeft + mTextureView.getMeasuredWidth(), mTop + mTextureView.getMeasuredHeight());
+        final Camera camera = mCameraView.getOpeningCamera();
+        updateSurface(camera, mTextureView.getMeasuredWidth(), mTextureView.getMeasuredHeight());
     }
 
     @Override
     public boolean isAttachedToCameraView() {
         return mTextureView.getParent() == mCameraView;
-    }
-
-    @Override
-    public boolean getDisplayBounds(Rect bounds) {
-        final Camera camera = mCameraView.getOpeningCamera();
-        final int width = mCameraView.getWidth(), height = mCameraView.getHeight();
-        if (camera == null || width == 0 || height == 0) return false;
-        final Camera.Size size = camera.getParameters().getPreviewSize();
-        if (size == null) return false;
-        final int rotation = CameraUtils.getDisplayRotation(mCameraView.getContext());
-        final boolean isPortrait = rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180;
-        final int cameraWidth = isPortrait ? size.height : size.width;
-        final int cameraHeight = isPortrait ? size.width : size.height;
-        final float viewRatio = (float) width / height, cameraRatio = (float) cameraWidth / cameraHeight;
-        if (viewRatio > cameraRatio) {
-            // fit width
-            final int displayHeight = Math.round(cameraWidth / viewRatio);
-            final int top = (cameraHeight - displayHeight) / 2;
-            bounds.set(0, top, cameraWidth, top + displayHeight);
-        } else {
-            // fit height
-            final int displayWidth = Math.round(cameraHeight * viewRatio);
-            final int left = (cameraWidth - displayWidth) / 2;
-            bounds.set(left, 0, left + displayWidth, cameraHeight);
-        }
-        return true;
     }
 
     @Override
@@ -85,6 +61,7 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
     }
 
     private void updateSurface(final Camera camera, final int width, final int height) {
+        if (camera == null) return;
         final Camera.Size size = camera.getParameters().getPreviewSize();
         final int rotation = CameraUtils.getDisplayRotation(mCameraView.getContext());
         final boolean isPortrait;

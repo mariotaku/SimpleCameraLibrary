@@ -1,6 +1,6 @@
 package org.mariotaku.simplecamera;
 
-import android.graphics.Rect;
+import android.graphics.RectF;
 import android.view.View;
 
 /**
@@ -13,5 +13,4 @@ public interface Preview {
 
     boolean isAttachedToCameraView();
 
-    boolean getDisplayBounds(Rect bounds);
 }

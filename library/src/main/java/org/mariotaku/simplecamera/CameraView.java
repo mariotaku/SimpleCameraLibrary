@@ -1,8 +1,10 @@
 package org.mariotaku.simplecamera;
 
 import android.content.Context;
+import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
@@ -410,9 +412,33 @@ public class CameraView extends ViewGroup {
         return null;
     }
 
-    public boolean getDisplayBounds(Rect bounds) {
-        if (mPreview == null) return false;
-        return mPreview.getDisplayBounds(bounds);
+    public boolean getCameraBounds(RectF bounds, RectF displayBounds) {
+        final Camera camera = getOpeningCamera();
+        final int width = getWidth(), height = getHeight();
+        if (camera == null || width == 0 || height == 0) return false;
+        final Camera.Size size = camera.getParameters().getPreviewSize();
+        if (size == null) return false;
+        if (displayBounds != null) {
+            final int rotation = getCameraRotation();
+            final int cameraWidth = size.width, cameraHeight = size.height;
+            final float viewRatio = rotation % 180 == 0 ? (float) width / height : (float) height / width;
+            final float cameraRatio = (float) cameraWidth / cameraHeight;
+            if (viewRatio > cameraRatio) {
+                // fit width
+                final int displayHeight = Math.round(cameraWidth / viewRatio);
+                final int top = (cameraHeight - displayHeight) / 2;
+                displayBounds.set(0, top, cameraWidth, top + displayHeight);
+            } else {
+                // fit height
+                final int displayWidth = Math.round(cameraHeight * viewRatio);
+                final int left = (cameraWidth - displayWidth) / 2;
+                displayBounds.set(left, 0, left + displayWidth, cameraHeight);
+            }
+        }
+        if (bounds != null) {
+            bounds.set(0, 0, size.width, size.height);
+        }
+        return true;
     }
 
     @Override
@@ -481,57 +507,68 @@ public class CameraView extends ViewGroup {
 
     public boolean touchFocus(MotionEvent event, Camera.AutoFocusCallback callback) {
         if (mAutoFocusing) return false;
-        final Rect bounds = new Rect();
+        final RectF cameraBounds = new RectF(), cameraDisplayBounds = new RectF();
         final Camera camera = getOpeningCamera();
         final Camera.Size size = getPreviewSize();
-        if (camera == null || !getDisplayBounds(bounds) || size == null) return false;
+        if (camera == null || !getCameraBounds(cameraBounds, cameraDisplayBounds) || size == null)
+            return false;
+//        Log.d(LOGTAG, String.format("Camera bounds: %s, %s", cameraBounds, cameraDisplayBounds));
         final Camera.Parameters parameters = camera.getParameters();
         if (!parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO))
             return false;
+        final int maxFocusAreas = parameters.getMaxNumFocusAreas(), maxMeteringAreas = parameters.getMaxNumMeteringAreas();
         final ArrayList<Camera.Area> areas = new ArrayList<Camera.Area>();
-        if (event != null) {
-            final int rotation = getCameraRotation();
-            final boolean swap = rotation % 180 != 0;
-            final int cameraWidth = swap ? size.height : size.width;
-            final int cameraHeight = swap ? size.width : size.height;
+        if (event != null && maxFocusAreas > 0 && maxMeteringAreas > 0) {
             final int viewWidth = getWidth(), viewHeight = getHeight();
-            final float xRatio = event.getX() / viewWidth;
-            final float yRatio = event.getY() / viewHeight;
-            final int touchW = Math.round(event.getTouchMajor() / 2 * bounds.width() / viewWidth);
-            final int touchH = Math.round(event.getTouchMinor() / 2 * bounds.height() / viewHeight);
-            final float pointLeft = bounds.left + bounds.width() * xRatio;
-            final float pointTop = bounds.top + bounds.height() * yRatio;
+            final int rotation = 360 - getCameraRotation();
+            final Matrix matrix = new Matrix();
+            final RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
+            final RectF touchRect = new RectF(0, 0, event.getTouchMajor() / 2, event.getTouchMinor() / 2);
+            touchRect.offsetTo(event.getX() - touchRect.centerX(), event.getY() - touchRect.centerY());
+            matrix.setRotate(rotation);
+            matrix.mapRect(viewRect);
+            final float offsetX = -viewRect.left, offsetY = -viewRect.top;
+            viewRect.offset(offsetX, offsetY);
+            matrix.reset();
+            matrix.setRotate(rotation);
+            matrix.mapRect(touchRect);
+            touchRect.offset(offsetX, offsetY);
+
+
+            final float sizeRatioX = viewRect.width() / cameraDisplayBounds.width();
+            final float sizeRatioY = viewRect.height() / cameraDisplayBounds.height();
+
+            CameraUtils.scaleRect(cameraDisplayBounds, sizeRatioX, sizeRatioY);
+            CameraUtils.scaleRect(cameraBounds, sizeRatioX, sizeRatioY);
+
+            touchRect.offset(cameraDisplayBounds.left - cameraBounds.left,
+                    cameraDisplayBounds.top - cameraBounds.top);
+
+            final float areaRatioX = 2000f / cameraBounds.width();
+            final float areaRatioY = 2000f / cameraBounds.height();
+
+            CameraUtils.scaleRect(touchRect, areaRatioX, areaRatioY);
+
+
+            touchRect.offset(-1000, -1000);
             final Rect focusRect = new Rect();
-            final int l = CameraUtils.clamp(Math.round((pointLeft - touchW / 2) / cameraWidth * 2000 - 1000), 1000, -1000);
-            final int t = CameraUtils.clamp(Math.round((pointTop - touchH / 2) / cameraHeight * 2000 - 1000), 1000, -1000);
-            final int r = CameraUtils.clamp(Math.round((pointLeft + touchW / 2) / cameraWidth * 2000 - 1000), 1000, -1000);
-            final int b = CameraUtils.clamp(Math.round((pointTop + touchH / 2) / cameraHeight * 2000 - 1000), 1000, -1000);
-            switch (rotation) {
-                case 270: {
-                    focusRect.set(-b, l, -t, r);
-                    break;
-                }
-                case 90: {
-                    focusRect.set(t, -r, b, -l);
-                    break;
-                }
-                case 180: {
-                    focusRect.set(-r, -b, -l, -t);
-                    break;
-                }
-                default: {
-                    focusRect.set(l, t, r, b);
-                    break;
-                }
+            focusRect.left = CameraUtils.clamp(Math.round(touchRect.left), 1000, -1000);
+            focusRect.top = CameraUtils.clamp(Math.round(touchRect.top), 1000, -1000);
+            focusRect.right = CameraUtils.clamp(Math.round(touchRect.right), 1000, -1000);
+            focusRect.bottom = CameraUtils.clamp(Math.round(touchRect.bottom), 1000, -1000);
+
+            if (focusRect.left < focusRect.right && focusRect.top < focusRect.bottom) {
+                areas.add(new Camera.Area(focusRect, 1000));
+            } else {
+                Log.w(LOGTAG, String.format("Invalid focus area: %s", focusRect));
             }
-            if (focusRect.left >= focusRect.right || focusRect.top >= focusRect.bottom)
-                return false;
-            areas.add(new Camera.Area(focusRect, 1000));
-            parameters.setFocusAreas(areas);
-            parameters.setMeteringAreas(areas);
-        } else {
+        }
+        if (areas.isEmpty()) {
             parameters.setFocusAreas(null);
             parameters.setMeteringAreas(null);
+        } else {
+            parameters.setFocusAreas(areas);
+            parameters.setMeteringAreas(areas);
         }
         try {
             camera.setParameters(parameters);

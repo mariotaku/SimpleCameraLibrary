@@ -2,6 +2,7 @@ package org.mariotaku.simplecamera;
 
 import android.content.Context;
 import android.graphics.Point;
+import android.graphics.RectF;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.view.Display;
@@ -138,4 +139,14 @@ public final class CameraUtils {
         }
     }
 
+    static void scaleRect(RectF rectF, float scale) {
+        scaleRect(rectF, scale, scale);
+    }
+
+    static void scaleRect(RectF rectF, float scaleX, float scaleY) {
+        rectF.left *= scaleX;
+        rectF.top *= scaleY;
+        rectF.right *= scaleX;
+        rectF.bottom *= scaleY;
+    }
 }
