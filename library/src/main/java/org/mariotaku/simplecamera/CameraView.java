@@ -187,6 +187,8 @@ public class CameraView extends ViewGroup {
         final int measuredWidth = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         final int measuredHeight = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(measuredWidth, measuredHeight);
+        final Preview preview = mPreview;
+        if (preview == null || !preview.isAttachedToCameraView()) return;
         final Camera camera = openCameraIfNeeded();
         if (camera != null && !isInEditMode()) {
             camera.stopPreview();
