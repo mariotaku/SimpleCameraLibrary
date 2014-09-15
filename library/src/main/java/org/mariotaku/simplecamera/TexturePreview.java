@@ -3,6 +3,7 @@ package org.mariotaku.simplecamera;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.os.Build;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -101,7 +102,9 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
 
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-        surface.updateTexImage();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            mCameraView.invalidate();
+        }
     }
 
 }

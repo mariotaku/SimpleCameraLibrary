@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class CameraView extends ViewGroup {
 
-    private static final String LOGTAG = "CameraView";
+    static final String LOGTAG = "CameraView";
 
     private Preview mPreview;
     private int mOpeningCameraId;
