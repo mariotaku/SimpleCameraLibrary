@@ -476,7 +476,6 @@ public class CameraView extends ViewGroup {
         return parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO);
     }
 
-
     public boolean touchFocus(MotionEvent event, Camera.AutoFocusCallback callback) {
         if (mAutoFocusing) return false;
         final Rect bounds = new Rect();
@@ -486,6 +485,7 @@ public class CameraView extends ViewGroup {
         final Camera.Parameters parameters = camera.getParameters();
         if (!parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO))
             return false;
+        final ArrayList<Camera.Area> areas = new ArrayList<Camera.Area>();
         if (event != null) {
             final int rotation = getCameraRotation();
             final boolean swap = rotation % 180 != 0;
@@ -521,7 +521,8 @@ public class CameraView extends ViewGroup {
                     break;
                 }
             }
-            final ArrayList<Camera.Area> areas = new ArrayList<Camera.Area>();
+            if (focusRect.left >= focusRect.right || focusRect.top >= focusRect.bottom)
+                return false;
             areas.add(new Camera.Area(focusRect, 1000));
             parameters.setFocusAreas(areas);
             parameters.setMeteringAreas(areas);
@@ -529,7 +530,11 @@ public class CameraView extends ViewGroup {
             parameters.setFocusAreas(null);
             parameters.setMeteringAreas(null);
         }
-        camera.setParameters(parameters);
+        try {
+            camera.setParameters(parameters);
+        } catch (Exception e) {
+            throw new IllegalStateException(String.format("Error while auto-focus, areas: %s", areas), e);
+        }
         setAutoFocusing(true);
         camera.autoFocus(new InternalAutoFocusCallback(this, callback));
         return true;

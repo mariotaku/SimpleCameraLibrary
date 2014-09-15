@@ -217,6 +217,7 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
                     break;
                 }
                 final CameraView.VideoRecordConfig config = mCameraView.newVideoRecordConfig();
+                if (config == null) return;
                 config.setOutputPath(new File(getExternalCacheDir(), System.currentTimeMillis() + ".mp4").getAbsolutePath());
                 config.setMaxDuration(10000);
                 mRecordVideoTransaction = mCameraView.recordVideo(config, new CameraView.VideoRecordCallback() {
