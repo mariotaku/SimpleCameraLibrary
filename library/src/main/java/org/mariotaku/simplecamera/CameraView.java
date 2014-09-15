@@ -37,10 +37,6 @@ public class CameraView extends ViewGroup {
     private boolean videoRecordStarted;
     private boolean mAutoFocusing;
 
-    public int getCameraRotation() {
-        return mCameraRotation;
-    }
-
     public CameraView(Context context) {
         this(context, null);
     }
@@ -53,6 +49,11 @@ public class CameraView extends ViewGroup {
         super(context, attrs, defStyle);
         setClipChildren(false);
         mCameraId = -1;
+        mOpeningCameraId = -1;
+    }
+
+    public int getCameraRotation() {
+        return mCameraRotation;
     }
 
     private void initPreview() {
@@ -67,7 +68,7 @@ public class CameraView extends ViewGroup {
     }
 
     public void openCamera(int cameraId) {
-        if (mCameraId == cameraId) return;
+        if (mOpeningCameraId == cameraId) return;
         mCameraId = cameraId;
         restartPreview();
     }
@@ -107,162 +108,8 @@ public class CameraView extends ViewGroup {
         this.mAutoFocusing = autoFocusing;
     }
 
-
-    public static final class VideoRecordTransaction {
-
-        private final CameraView cameraView;
-        private final VideoRecordConfig config;
-        private final VideoRecordCallback callback;
-        private Object extra;
-
-        public Object getExtra() {
-            return extra;
-        }
-
-        public void setExtra(Object extra) {
-            this.extra = extra;
-        }
-
-        VideoRecordTransaction(CameraView cameraView, VideoRecordConfig config, VideoRecordCallback callback) {
-            this.cameraView = cameraView;
-            this.config = config;
-            this.callback = callback;
-        }
-
-
-        public VideoRecordConfig getConfig() {
-            return config;
-        }
-
-        public void stop() {
-            final MediaRecorder recorder = cameraView.getCurrentMediaRecorder();
-            if (recorder == null) {
-                return;
-            }
-            try {
-                recorder.stop();
-                recorder.reset();
-                recorder.release();
-            } catch (RuntimeException e) {
-                //Ignore
-            }
-            final Camera camera = cameraView.getOpeningCamera();
-            if (camera != null) {
-                camera.lock();
-                try {
-                    camera.reconnect();
-                } catch (IOException e) {
-                }
-                camera.startPreview();
-            }
-            cameraView.post(new NotifyRecordStopRunnable(callback));
-            cameraView.setCurrentMediaRecorder(null);
-        }
-
-
-        private static class NotifyRecordStopRunnable implements Runnable {
-            private final VideoRecordCallback callback;
-
-            public NotifyRecordStopRunnable(VideoRecordCallback callback) {
-                this.callback = callback;
-            }
-
-            @Override
-            public void run() {
-                if (callback == null) return;
-                callback.onRecordStopped();
-            }
-        }
-    }
-
     private MediaRecorder getCurrentMediaRecorder() {
         return mRecorder;
-    }
-
-    public interface VideoRecordCallback extends MediaRecorder.OnInfoListener {
-        void onRecordStarted();
-
-        void onRecordError(Exception e);
-
-        void onRecordStopped();
-    }
-
-
-    private static class RecordVideoRunnable implements Runnable {
-
-        private final CameraView cameraView;
-        private final MediaRecorder recorder;
-        private final VideoRecordCallback callback;
-        private final VideoRecordConfig config;
-
-        private RecordVideoRunnable(CameraView cameraView, MediaRecorder recorder,
-                                    VideoRecordConfig config, VideoRecordCallback callback) {
-            this.cameraView = cameraView;
-            this.recorder = recorder;
-            this.callback = callback;
-            this.config = config;
-        }
-
-        @Override
-        public void run() {
-            final Camera camera = cameraView.getOpeningCamera();
-            if (camera == null) return;
-            try {
-                camera.unlock();
-                recorder.setCamera(camera);
-                recorder.setOnInfoListener(callback);
-                recorder.setAudioSource(config.audioSource);
-                recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-                recorder.setProfile(config.profile);
-                config.applyOutputFile(recorder);
-                recorder.setOrientationHint(cameraView.getVideoRotation());
-                if (config.maxDuration != 0) {
-                    recorder.setMaxDuration(config.maxDuration);
-                }
-                recorder.prepare();
-                recorder.start();
-                cameraView.videoRecordStarted = true;
-                cameraView.post(new NotifyRecordStartRunnable(callback));
-            } catch (Exception e) {
-                cameraView.videoRecordStarted = false;
-                recorder.reset();
-                recorder.release();
-                camera.lock();
-                cameraView.setCurrentMediaRecorder(null);
-                cameraView.post(new NotifyRecordFailedRunnable(callback, e));
-//                Log.e(Constants.LOGTAG, "Error recording video", e);
-            }
-        }
-
-        private static class NotifyRecordFailedRunnable implements Runnable {
-            private final VideoRecordCallback callback;
-            private final Exception exception;
-
-            public NotifyRecordFailedRunnable(VideoRecordCallback callback, Exception exception) {
-                this.callback = callback;
-                this.exception = exception;
-            }
-
-            @Override
-            public void run() {
-                if (callback == null) return;
-                callback.onRecordError(exception);
-            }
-        }
-
-        private static class NotifyRecordStartRunnable implements Runnable {
-            private final VideoRecordCallback callback;
-
-            public NotifyRecordStartRunnable(VideoRecordCallback callback) {
-                this.callback = callback;
-            }
-
-            @Override
-            public void run() {
-                if (callback == null) return;
-                callback.onRecordStarted();
-            }
-        }
     }
 
     private void setCurrentMediaRecorder(MediaRecorder recorder) {
@@ -272,84 +119,6 @@ public class CameraView extends ViewGroup {
     private int getVideoRotation() {
         if (mOpeningCameraId == -1) return 0;
         return CameraUtils.getPictureRotation(CameraUtils.getDisplayRotation(getContext()), mOpeningCameraId);
-    }
-
-    public static final class VideoRecordConfig {
-
-        private CamcorderProfile profile;
-        private int audioSource;
-        private FileDescriptor outputFileDescriptor;
-        private boolean readOnly;
-        private int maxDuration;
-
-        public String getOutputPath() {
-            return outputPath;
-        }
-
-        public FileDescriptor getOutputFileDescriptor() {
-            return outputFileDescriptor;
-        }
-
-        public int getAudioSource() {
-            return audioSource;
-        }
-
-        public CamcorderProfile getProfile() {
-            return profile;
-        }
-
-        private String outputPath;
-
-        VideoRecordConfig(int cameraId) {
-            setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-            setProfile(CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH));
-        }
-
-        void setReadOnly() {
-            this.readOnly = true;
-        }
-
-        public int getMaxDuration() {
-            return maxDuration;
-        }
-
-        public void setMaxDuration(int maxDuration) {
-            checkReadable();
-
-            this.maxDuration = maxDuration;
-        }
-
-        public void setOutputFileDescriptor(FileDescriptor outputFileDescriptor) {
-            checkReadable();
-            this.outputFileDescriptor = outputFileDescriptor;
-        }
-
-        private void checkReadable() {
-            if (readOnly) throw new IllegalArgumentException("Config is read only");
-        }
-
-        public void setOutputPath(String outputPath) {
-            checkReadable();
-            this.outputPath = outputPath;
-        }
-
-        public void setAudioSource(int audioSource) {
-            checkReadable();
-            this.audioSource = audioSource;
-        }
-
-        public void setProfile(CamcorderProfile profile) {
-            checkReadable();
-            this.profile = profile;
-        }
-
-        void applyOutputFile(MediaRecorder recorder) {
-            if (outputFileDescriptor != null) {
-                recorder.setOutputFile(outputFileDescriptor);
-            } else if (outputPath != null) {
-                recorder.setOutputFile(outputPath);
-            }
-        }
     }
 
     public VideoRecordTransaction recordVideo(VideoRecordConfig config, VideoRecordCallback callback) {
@@ -368,44 +137,6 @@ public class CameraView extends ViewGroup {
         final Camera camera = getOpeningCamera();
         if (camera == null) return null;
         return camera.getParameters().getPreviewSize();
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        final int measuredWidth = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
-        final int measuredHeight = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
-        setMeasuredDimension(measuredWidth, measuredHeight);
-        final Camera camera = openCameraIfNeeded();
-        if (camera != null && !isInEditMode()) {
-            camera.stopPreview();
-            final Camera.Parameters parameters = camera.getParameters();
-            final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
-            final List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-            final Point overrideMeasureSize = getOverrideMeasureSize();
-            final Point previewSize;
-            if (overrideMeasureSize != null) {
-                previewSize = CameraUtils.getBestSize(previewSizes, overrideMeasureSize.x,
-                        overrideMeasureSize.y, rotation);
-            } else {
-                previewSize = CameraUtils.getBestSize(previewSizes, measuredWidth, measuredHeight,
-                        rotation);
-            }
-            if (previewSize != null) {
-                parameters.setPreviewSize(previewSize.x, previewSize.y);
-            } else {
-                final Point largest = CameraUtils.getLargestSize(previewSizes);
-                parameters.setPreviewSize(largest.x, largest.y);
-            }
-            camera.setDisplayOrientation(rotation);
-//            parameters.setRotation(rotation);
-            camera.setParameters(parameters);
-            camera.startPreview();
-            mCameraRotation = rotation;
-        }
-        final View child = getChildAt(0);
-        if (child == null) return;
-        measureChild(child, widthMeasureSpec, heightMeasureSpec);
     }
 
     protected Point getOverrideMeasureSize() {
@@ -447,6 +178,44 @@ public class CameraView extends ViewGroup {
     }
 
     @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        final int measuredWidth = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
+        final int measuredHeight = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
+        setMeasuredDimension(measuredWidth, measuredHeight);
+        final Camera camera = openCameraIfNeeded();
+        if (camera != null && !isInEditMode()) {
+            camera.stopPreview();
+            final Camera.Parameters parameters = camera.getParameters();
+            final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
+            final List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+            final Point overrideMeasureSize = getOverrideMeasureSize();
+            final Point previewSize;
+            if (overrideMeasureSize != null) {
+                previewSize = CameraUtils.getBestSize(previewSizes, overrideMeasureSize.x,
+                        overrideMeasureSize.y, rotation);
+            } else {
+                previewSize = CameraUtils.getBestSize(previewSizes, measuredWidth, measuredHeight,
+                        rotation);
+            }
+            if (previewSize != null) {
+                parameters.setPreviewSize(previewSize.x, previewSize.y);
+            } else {
+                final Point largest = CameraUtils.getLargestSize(previewSizes);
+                parameters.setPreviewSize(largest.x, largest.y);
+            }
+            camera.setDisplayOrientation(rotation);
+//            parameters.setRotation(rotation);
+            camera.setParameters(parameters);
+            camera.startPreview();
+            mCameraRotation = rotation;
+        }
+        final View child = getChildAt(0);
+        if (child == null) return;
+        measureChild(child, widthMeasureSpec, heightMeasureSpec);
+    }
+
+    @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         if (mPreview == null || !mPreview.isAttachedToCameraView()) return;
         mPreview.layoutPreview(changed, l, t, r, b);
@@ -466,6 +235,8 @@ public class CameraView extends ViewGroup {
 
     public void releaseCamera() {
         final Camera camera = mOpeningCamera;
+        mOpeningCameraId = -1;
+        mCameraId = -1;
         if (camera == null) return;
         camera.release();
         mOpeningCamera = null;
@@ -486,12 +257,6 @@ public class CameraView extends ViewGroup {
 
     public void setCameraListener(Listener listener) {
         mListener = listener;
-    }
-
-    public static interface Listener {
-        void onCameraInitialized(Camera camera);
-
-        void onCameraOpeningError(Exception e);
     }
 
     public boolean isAutoFocusing() {
@@ -579,25 +344,6 @@ public class CameraView extends ViewGroup {
         return true;
     }
 
-    private static class InternalAutoFocusCallback implements Camera.AutoFocusCallback {
-
-        private final CameraView cameraView;
-        private final Camera.AutoFocusCallback callback;
-
-        InternalAutoFocusCallback(CameraView cameraView, Camera.AutoFocusCallback callback) {
-            this.cameraView = cameraView;
-            this.callback = callback;
-        }
-
-        @Override
-        public void onAutoFocus(boolean success, Camera camera) {
-            if (callback != null) {
-                callback.onAutoFocus(success, camera);
-            }
-            cameraView.setAutoFocusing(false);
-        }
-    }
-
     public void takePicture(final Camera.ShutterCallback shutter, final Camera.PictureCallback jpeg) {
         final Camera camera = getOpeningCamera();
         if (camera == null) return;
@@ -615,6 +361,261 @@ public class CameraView extends ViewGroup {
     public int getPictureRotation() {
         if (mOpeningCameraId == -1) return 0;
         return CameraUtils.getPictureRotation(CameraUtils.getDisplayRotation(getContext()), mOpeningCameraId);
+    }
+
+    public interface VideoRecordCallback extends MediaRecorder.OnInfoListener {
+        void onRecordStarted();
+
+        void onRecordError(Exception e);
+
+        void onRecordStopped();
+    }
+
+    public static interface Listener {
+        void onCameraInitialized(Camera camera);
+
+        void onCameraOpeningError(Exception e);
+    }
+
+    public static final class VideoRecordTransaction {
+
+        private final CameraView cameraView;
+        private final VideoRecordConfig config;
+        private final VideoRecordCallback callback;
+        private Object extra;
+
+        VideoRecordTransaction(CameraView cameraView, VideoRecordConfig config, VideoRecordCallback callback) {
+            this.cameraView = cameraView;
+            this.config = config;
+            this.callback = callback;
+        }
+
+        public Object getExtra() {
+            return extra;
+        }
+
+        public void setExtra(Object extra) {
+            this.extra = extra;
+        }
+
+        public VideoRecordConfig getConfig() {
+            return config;
+        }
+
+        public void stop() {
+            final MediaRecorder recorder = cameraView.getCurrentMediaRecorder();
+            if (recorder == null) {
+                return;
+            }
+            try {
+                recorder.stop();
+                recorder.reset();
+                recorder.release();
+            } catch (RuntimeException e) {
+                //Ignore
+            }
+            final Camera camera = cameraView.getOpeningCamera();
+            if (camera != null) {
+                camera.lock();
+                try {
+                    camera.reconnect();
+                } catch (IOException e) {
+                }
+                camera.startPreview();
+            }
+            cameraView.post(new NotifyRecordStopRunnable(callback));
+            cameraView.setCurrentMediaRecorder(null);
+        }
+
+
+        private static class NotifyRecordStopRunnable implements Runnable {
+            private final VideoRecordCallback callback;
+
+            public NotifyRecordStopRunnable(VideoRecordCallback callback) {
+                this.callback = callback;
+            }
+
+            @Override
+            public void run() {
+                if (callback == null) return;
+                callback.onRecordStopped();
+            }
+        }
+    }
+
+    private static class RecordVideoRunnable implements Runnable {
+
+        private final CameraView cameraView;
+        private final MediaRecorder recorder;
+        private final VideoRecordCallback callback;
+        private final VideoRecordConfig config;
+
+        private RecordVideoRunnable(CameraView cameraView, MediaRecorder recorder,
+                                    VideoRecordConfig config, VideoRecordCallback callback) {
+            this.cameraView = cameraView;
+            this.recorder = recorder;
+            this.callback = callback;
+            this.config = config;
+        }
+
+        private static class NotifyRecordFailedRunnable implements Runnable {
+            private final VideoRecordCallback callback;
+            private final Exception exception;
+
+            public NotifyRecordFailedRunnable(VideoRecordCallback callback, Exception exception) {
+                this.callback = callback;
+                this.exception = exception;
+            }
+
+            @Override
+            public void run() {
+                if (callback == null) return;
+                callback.onRecordError(exception);
+            }
+        }
+
+        @Override
+        public void run() {
+            final Camera camera = cameraView.getOpeningCamera();
+            if (camera == null) return;
+            try {
+                camera.unlock();
+                recorder.setCamera(camera);
+                recorder.setOnInfoListener(callback);
+                recorder.setAudioSource(config.audioSource);
+                recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+                recorder.setProfile(config.profile);
+                config.applyOutputFile(recorder);
+                recorder.setOrientationHint(cameraView.getVideoRotation());
+                if (config.maxDuration != 0) {
+                    recorder.setMaxDuration(config.maxDuration);
+                }
+                recorder.prepare();
+                recorder.start();
+                cameraView.videoRecordStarted = true;
+                cameraView.post(new NotifyRecordStartRunnable(callback));
+            } catch (Exception e) {
+                cameraView.videoRecordStarted = false;
+                recorder.reset();
+                recorder.release();
+                camera.lock();
+                cameraView.setCurrentMediaRecorder(null);
+                cameraView.post(new NotifyRecordFailedRunnable(callback, e));
+//                Log.e(Constants.LOGTAG, "Error recording video", e);
+            }
+        }
+
+        private static class NotifyRecordStartRunnable implements Runnable {
+            private final VideoRecordCallback callback;
+
+            public NotifyRecordStartRunnable(VideoRecordCallback callback) {
+                this.callback = callback;
+            }
+
+            @Override
+            public void run() {
+                if (callback == null) return;
+                callback.onRecordStarted();
+            }
+        }
+
+
+    }
+
+    public static final class VideoRecordConfig {
+
+        private CamcorderProfile profile;
+        private int audioSource;
+        private FileDescriptor outputFileDescriptor;
+        private boolean readOnly;
+        private int maxDuration;
+        private String outputPath;
+
+        VideoRecordConfig(int cameraId) {
+            setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+            setProfile(CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH));
+        }
+
+        public String getOutputPath() {
+            return outputPath;
+        }
+
+        public FileDescriptor getOutputFileDescriptor() {
+            return outputFileDescriptor;
+        }
+
+        public int getAudioSource() {
+            return audioSource;
+        }
+
+        public CamcorderProfile getProfile() {
+            return profile;
+        }
+
+        void setReadOnly() {
+            this.readOnly = true;
+        }
+
+        public int getMaxDuration() {
+            return maxDuration;
+        }
+
+        public void setMaxDuration(int maxDuration) {
+            checkReadable();
+
+            this.maxDuration = maxDuration;
+        }
+
+        public void setOutputFileDescriptor(FileDescriptor outputFileDescriptor) {
+            checkReadable();
+            this.outputFileDescriptor = outputFileDescriptor;
+        }
+
+        private void checkReadable() {
+            if (readOnly) throw new IllegalArgumentException("Config is read only");
+        }
+
+        public void setOutputPath(String outputPath) {
+            checkReadable();
+            this.outputPath = outputPath;
+        }
+
+        public void setAudioSource(int audioSource) {
+            checkReadable();
+            this.audioSource = audioSource;
+        }
+
+        public void setProfile(CamcorderProfile profile) {
+            checkReadable();
+            this.profile = profile;
+        }
+
+        void applyOutputFile(MediaRecorder recorder) {
+            if (outputFileDescriptor != null) {
+                recorder.setOutputFile(outputFileDescriptor);
+            } else if (outputPath != null) {
+                recorder.setOutputFile(outputPath);
+            }
+        }
+    }
+
+    private static class InternalAutoFocusCallback implements Camera.AutoFocusCallback {
+
+        private final CameraView cameraView;
+        private final Camera.AutoFocusCallback callback;
+
+        InternalAutoFocusCallback(CameraView cameraView, Camera.AutoFocusCallback callback) {
+            this.cameraView = cameraView;
+            this.callback = callback;
+        }
+
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+            if (callback != null) {
+                callback.onAutoFocus(success, camera);
+            }
+            cameraView.setAutoFocusing(false);
+        }
     }
 
     private static class InternalPictureCallback implements Camera.PictureCallback {
