@@ -43,6 +43,16 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
     }
 
     @Override
+    public void onPreReleaseCamera(Camera camera) {
+        camera.stopPreview();
+        try {
+            camera.setPreviewTexture(null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         final Camera camera = mCameraView.openCameraIfNeeded();
         if (camera == null) return;

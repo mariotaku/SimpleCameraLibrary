@@ -1,6 +1,7 @@
 package org.mariotaku.simplecamera;
 
 import android.graphics.RectF;
+import android.hardware.Camera;
 import android.view.View;
 
 /**
@@ -13,4 +14,5 @@ public interface Preview {
 
     boolean isAttachedToCameraView();
 
+    void onPreReleaseCamera(Camera camera);
 }

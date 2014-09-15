@@ -34,7 +34,7 @@ public class CameraView extends ViewGroup {
     private boolean mSingleShot;
     private int mCameraId;
     private MediaRecorder mRecorder;
-    private boolean videoRecordStarted;
+    private boolean mVideoRecordStarted;
     private boolean mAutoFocusing;
 
     public CameraView(Context context) {
@@ -77,8 +77,7 @@ public class CameraView extends ViewGroup {
         final Camera oldCamera = mOpeningCamera;
         if (oldCamera != null) {
             if (mOpeningCameraId == cameraId) return oldCamera;
-            oldCamera.release();
-            mOpeningCamera = null;
+            releaseCamera();
         }
         try {
             final Camera camera = Camera.open(cameraId);
@@ -238,6 +237,10 @@ public class CameraView extends ViewGroup {
         mOpeningCameraId = -1;
         mCameraId = -1;
         if (camera == null) return;
+        final Preview preview = mPreview;
+        if (preview != null) {
+            preview.onPreReleaseCamera(camera);
+        }
         camera.release();
         mOpeningCamera = null;
     }
@@ -492,10 +495,10 @@ public class CameraView extends ViewGroup {
                 }
                 recorder.prepare();
                 recorder.start();
-                cameraView.videoRecordStarted = true;
+                cameraView.mVideoRecordStarted = true;
                 cameraView.post(new NotifyRecordStartRunnable(callback));
             } catch (Exception e) {
-                cameraView.videoRecordStarted = false;
+                cameraView.mVideoRecordStarted = false;
                 recorder.reset();
                 recorder.release();
                 camera.lock();
