@@ -512,7 +512,6 @@ public class CameraView extends ViewGroup {
         final Camera.Size size = getPreviewSize();
         if (camera == null || !getCameraBounds(cameraBounds, cameraDisplayBounds) || size == null)
             return false;
-//        Log.d(LOGTAG, String.format("Camera bounds: %s, %s", cameraBounds, cameraDisplayBounds));
         final Camera.Parameters parameters = camera.getParameters();
         if (!parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO))
             return false;
