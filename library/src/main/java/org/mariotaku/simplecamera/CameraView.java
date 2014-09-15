@@ -27,12 +27,12 @@ public class CameraView extends ViewGroup {
     static final String LOGTAG = "CameraView";
 
     private Preview mPreview;
-    private int mOpeningCameraId;
     private Camera mOpeningCamera;
+    private int mOpeningCameraId;
+    private int mRequiredCameraId;
     private Listener mListener;
     private int mCameraRotation;
     private boolean mSingleShot;
-    private int mCameraId;
     private MediaRecorder mRecorder;
     private boolean mVideoRecordStarted;
     private boolean mAutoFocusing;
@@ -48,8 +48,12 @@ public class CameraView extends ViewGroup {
     public CameraView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         setClipChildren(false);
-        mCameraId = -1;
         mOpeningCameraId = -1;
+        mRequiredCameraId = getDefaultCameraId();
+    }
+
+    private int getDefaultCameraId() {
+        return 0;
     }
 
     public int getCameraRotation() {
@@ -69,11 +73,12 @@ public class CameraView extends ViewGroup {
 
     public void openCamera(int cameraId) {
         if (mOpeningCameraId == cameraId) return;
-        mCameraId = cameraId;
+        mRequiredCameraId = cameraId;
         restartPreview();
     }
 
     private Camera openCameraSafely(final int cameraId) {
+        if (cameraId < 0) throw new IllegalStateException();
         final Camera oldCamera = mOpeningCamera;
         if (oldCamera != null) {
             if (mOpeningCameraId == cameraId) return oldCamera;
@@ -88,7 +93,7 @@ public class CameraView extends ViewGroup {
             }
             return camera;
         } catch (Exception e) {
-            Log.e(LOGTAG, "Error opening camera", e);
+            Log.e(LOGTAG, String.format("Error opening camera %d", cameraId), e);
             if (mListener != null) {
                 mListener.onCameraOpeningError(e);
             }
@@ -235,7 +240,6 @@ public class CameraView extends ViewGroup {
     public void releaseCamera() {
         final Camera camera = mOpeningCamera;
         mOpeningCameraId = -1;
-        mCameraId = -1;
         if (camera == null) return;
         final Preview preview = mPreview;
         if (preview != null) {
@@ -255,7 +259,7 @@ public class CameraView extends ViewGroup {
 
     Camera openCameraIfNeeded() {
         if (mOpeningCamera != null) return mOpeningCamera;
-        return openCameraSafely(mCameraId);
+        return openCameraSafely(mRequiredCameraId);
     }
 
     public void setCameraListener(Listener listener) {
@@ -477,6 +481,20 @@ public class CameraView extends ViewGroup {
             }
         }
 
+        private static class NotifyRecordStartRunnable implements Runnable {
+            private final VideoRecordCallback callback;
+
+            public NotifyRecordStartRunnable(VideoRecordCallback callback) {
+                this.callback = callback;
+            }
+
+            @Override
+            public void run() {
+                if (callback == null) return;
+                callback.onRecordStarted();
+            }
+        }
+
         @Override
         public void run() {
             final Camera camera = cameraView.getOpeningCamera();
@@ -505,20 +523,6 @@ public class CameraView extends ViewGroup {
                 cameraView.setCurrentMediaRecorder(null);
                 cameraView.post(new NotifyRecordFailedRunnable(callback, e));
 //                Log.e(Constants.LOGTAG, "Error recording video", e);
-            }
-        }
-
-        private static class NotifyRecordStartRunnable implements Runnable {
-            private final VideoRecordCallback callback;
-
-            public NotifyRecordStartRunnable(VideoRecordCallback callback) {
-                this.callback = callback;
-            }
-
-            @Override
-            public void run() {
-                if (callback == null) return;
-                callback.onRecordStarted();
             }
         }
 
