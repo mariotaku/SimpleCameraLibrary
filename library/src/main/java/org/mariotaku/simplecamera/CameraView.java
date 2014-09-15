@@ -75,6 +75,7 @@ public class CameraView extends ViewGroup {
         if (oldCamera != null) {
             if (mOpeningCameraId == cameraId) return oldCamera;
             oldCamera.release();
+            mOpeningCamera = null;
         }
         try {
             final Camera camera = Camera.open(cameraId);
@@ -375,6 +376,7 @@ public class CameraView extends ViewGroup {
         setMeasuredDimension(measuredWidth, measuredHeight);
         final Camera camera = openCameraIfNeeded();
         if (camera != null && !isInEditMode()) {
+            camera.stopPreview();
             final Camera.Parameters parameters = camera.getParameters();
             final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
             final List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
@@ -396,6 +398,7 @@ public class CameraView extends ViewGroup {
             camera.setDisplayOrientation(rotation);
 //            parameters.setRotation(rotation);
             camera.setParameters(parameters);
+            camera.startPreview();
             mCameraRotation = rotation;
         }
         final View child = getChildAt(0);
