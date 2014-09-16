@@ -3,7 +3,6 @@ package org.mariotaku.simplecamera;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import android.os.Build;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -13,11 +12,10 @@ import java.io.IOException;
 /**
  * Created by mariotaku on 14-9-9.
  */
-final class TexturePreview implements Preview, TextureView.SurfaceTextureListener {
+public class TexturePreview implements Preview, TextureView.SurfaceTextureListener {
 
     private final CameraView mCameraView;
     private final TextureView mTextureView;
-    private int mLeft, mTop;
 
     public TexturePreview(CameraView cameraView) {
         mCameraView = cameraView;
@@ -32,7 +30,7 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
 
     @Override
     public void layoutPreview(boolean changed, int l, int t, int r, int b) {
-        mTextureView.layout(mLeft, mTop, mLeft + mTextureView.getMeasuredWidth(), mTop + mTextureView.getMeasuredHeight());
+        mTextureView.layout(0, 0, mTextureView.getMeasuredWidth(), mTextureView.getMeasuredHeight());
         final Camera camera = mCameraView.getOpeningCamera();
         updateSurface(camera, mTextureView.getMeasuredWidth(), mTextureView.getMeasuredHeight());
     }
@@ -89,14 +87,16 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
             // fit height
             transform.setScale(height * cameraRatio / width, 1);
         }
-        mTextureView.setTransform(transform);
+        final float translateX, translateY;
         if (viewRatio > cameraRatio) {
-            mLeft = 0;
-            mTop = -Math.round((width / cameraRatio - height)) / 2;
+            translateX = 0;
+            translateY = -(width / cameraRatio - height) / 2;
         } else {
-            mLeft = -Math.round((height * cameraRatio - width)) / 2;
-            mTop = 0;
+            translateX = -(height * cameraRatio - width) / 2;
+            translateY = 0;
         }
+        transform.postTranslate(translateX, translateY);
+        mTextureView.setTransform(transform);
     }
 
     @Override
@@ -112,9 +112,6 @@ final class TexturePreview implements Preview, TextureView.SurfaceTextureListene
 
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-            mCameraView.invalidate();
-        }
     }
 
 }
