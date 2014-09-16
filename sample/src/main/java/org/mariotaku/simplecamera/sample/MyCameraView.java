@@ -22,8 +22,6 @@ public class MyCameraView extends CameraView {
         super(context, attrs, defStyle);
     }
 
-//    @Override
-//    protected Point getOverrideMeasureSize() {
-//        return new Point(240, 240);
-//    }
+
+
 }

@@ -231,7 +231,7 @@ public class CameraView extends ViewGroup {
         super.addView(child);
     }
 
-    private Preview createPreview() {
+    protected Preview createPreview() {
         return new TexturePreview(this);
     }
 
