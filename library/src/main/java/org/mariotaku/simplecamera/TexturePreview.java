@@ -24,7 +24,7 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
     }
 
     @Override
-    public View getView() {
+    public TextureView getView() {
         return mTextureView;
     }
 

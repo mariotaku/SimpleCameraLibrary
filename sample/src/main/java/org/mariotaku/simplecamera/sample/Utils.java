@@ -19,8 +19,17 @@
 
 package org.mariotaku.simplecamera.sample;
 
-public class MathUtils {
-	public static float clamp(final float num, final float max, final float min) {
+import java.util.Comparator;
+
+public class Utils {
+    static final Comparator<int[]> FPS_RANGE_COMPARATOR = new Comparator<int[]>() {
+        @Override
+        public int compare(int[] lhs, int[] rhs) {
+            return rhs[0] - lhs[0];
+        }
+    };
+
+    public static float clamp(final float num, final float max, final float min) {
 		return Math.max(Math.min(num, max), min);
 	}
 

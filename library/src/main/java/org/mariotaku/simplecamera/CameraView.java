@@ -52,6 +52,10 @@ public class CameraView extends ViewGroup {
         mRequiredCameraId = getDefaultCameraId();
     }
 
+    public Preview getPreview() {
+        return mPreview;
+    }
+
     private int getDefaultCameraId() {
         return 0;
     }

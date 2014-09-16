@@ -1,10 +1,10 @@
 package org.mariotaku.simplecamera.sample;
 
 import android.content.Context;
-import android.graphics.Point;
 import android.util.AttributeSet;
 
 import org.mariotaku.simplecamera.CameraView;
+import org.mariotaku.simplecamera.Preview;
 
 /**
  * Created by mariotaku on 14-9-15.
@@ -23,5 +23,9 @@ public class MyCameraView extends CameraView {
     }
 
 
+    @Override
+    protected Preview createPreview() {
+        return new MyTexturePreview(this);
+    }
 
 }

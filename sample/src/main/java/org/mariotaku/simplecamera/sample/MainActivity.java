@@ -22,7 +22,6 @@ import org.mariotaku.simplecamera.CameraView;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 
@@ -48,7 +47,7 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
         findViewById(R.id.record_video).setOnClickListener(this);
         findViewById(R.id.front_camera).setOnClickListener(this);
         findViewById(R.id.back_camera).setOnClickListener(this);
-        findViewById(R.id.open_another).setOnClickListener(this);
+        findViewById(R.id.layer_paint).setOnClickListener(this);
         mCameraView.setCameraListener(this);
         mCameraView.setOnTouchListener(this);
     }
@@ -73,18 +72,11 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
         return super.onOptionsItemSelected(item);
     }
 
-    private static final Comparator<int[]> FPS_RANGE_COMPARATOR = new Comparator<int[]>() {
-        @Override
-        public int compare(int[] lhs, int[] rhs) {
-            return rhs[0] - lhs[0];
-        }
-    };
-
     @Override
     public void onCameraInitialized(Camera camera) {
         final Camera.Parameters parameters = camera.getParameters();
         final List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
-        Collections.sort(fpsRanges, FPS_RANGE_COMPARATOR);
+        Collections.sort(fpsRanges, Utils.FPS_RANGE_COMPARATOR);
         if (!fpsRanges.isEmpty()) {
             final int[] fpsRange = fpsRanges.get(0);
             parameters.setPreviewFpsRange(fpsRange[0], fpsRange[1]);
@@ -262,8 +254,8 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
                 mCameraView.openCamera(0);
                 break;
             }
-            case R.id.open_another: {
-                startActivity(new Intent(this, MainActivity.class));
+            case R.id.layer_paint: {
+                startActivity(new Intent(this, LayerPaintActivity.class));
             }
         }
     }
