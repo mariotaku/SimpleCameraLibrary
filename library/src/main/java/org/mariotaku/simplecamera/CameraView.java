@@ -32,7 +32,7 @@ public class CameraView extends ViewGroup {
     private Camera mOpeningCamera;
     private int mOpeningCameraId;
     private int mRequiredCameraId;
-    private Listener mListener;
+    private CameraListener mListener;
     private int mCameraRotation;
     private boolean mSingleShot;
     private MediaRecorder mRecorder;
@@ -97,6 +97,7 @@ public class CameraView extends ViewGroup {
             if (mListener != null) {
                 mListener.onCameraInitialized(camera);
             }
+            camera.setErrorCallback(mListener);
             return camera;
         } catch (Exception e) {
             Log.e(LOGTAG, String.format("Error opening camera %d", cameraId), e);
@@ -273,8 +274,12 @@ public class CameraView extends ViewGroup {
         return openCameraSafely(mRequiredCameraId);
     }
 
-    public void setCameraListener(Listener listener) {
+    public void setCameraListener(CameraListener listener) {
         mListener = listener;
+        final Camera camera = getOpeningCamera();
+        if (camera != null) {
+            camera.setErrorCallback(listener);
+        }
     }
 
     public boolean isAutoFocusing() {
@@ -390,7 +395,7 @@ public class CameraView extends ViewGroup {
         void onRecordStopped();
     }
 
-    public static interface Listener {
+    public static interface CameraListener extends Camera.ErrorCallback {
         void onCameraInitialized(Camera camera);
 
         void onCameraOpeningError(Exception e);

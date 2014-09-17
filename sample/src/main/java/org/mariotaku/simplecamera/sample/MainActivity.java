@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 
-public class MainActivity extends Activity implements CameraView.Listener, View.OnTouchListener, View.OnClickListener {
+public class MainActivity extends Activity implements CameraView.CameraListener, View.OnTouchListener, View.OnClickListener {
 
     private static final String LOGTAG = "SimpleCameraSample";
     private CameraView mCameraView;
@@ -261,6 +261,16 @@ public class MainActivity extends Activity implements CameraView.Listener, View.
             }
             case R.id.layer_paint: {
                 startActivity(new Intent(this, LayerPaintActivity.class));
+            }
+        }
+    }
+
+    @Override
+    public void onError(int error, Camera camera) {
+        switch (error) {
+            case Camera.CAMERA_ERROR_SERVER_DIED: {
+                finish();
+                break;
             }
         }
     }

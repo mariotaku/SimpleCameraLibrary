@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 
-public class LayerPaintActivity extends Activity implements View.OnClickListener, CameraView.Listener {
+public class LayerPaintActivity extends Activity implements View.OnClickListener, CameraView.CameraListener {
 
     private CameraView mCameraView;
 
@@ -92,5 +92,10 @@ public class LayerPaintActivity extends Activity implements View.OnClickListener
                 break;
             }
         }
+    }
+
+    @Override
+    public void onError(int error, Camera camera) {
+
     }
 }
