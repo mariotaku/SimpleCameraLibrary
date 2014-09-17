@@ -1,7 +1,7 @@
 package org.mariotaku.simplecamera;
 
-import android.graphics.RectF;
 import android.hardware.Camera;
+import android.media.MediaRecorder;
 import android.view.View;
 
 /**
@@ -15,4 +15,8 @@ public interface Preview {
     boolean isAttachedToCameraView();
 
     void onPreReleaseCamera(Camera camera);
+
+    void attachMediaRecorder(MediaRecorder recorder);
+
+    void detachMediaRecorder(MediaRecorder recorder);
 }

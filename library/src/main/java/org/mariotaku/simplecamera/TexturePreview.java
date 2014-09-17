@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.view.Surface;
 import android.view.TextureView;
@@ -53,6 +54,17 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
     }
 
     @Override
+    public void attachMediaRecorder(MediaRecorder recorder) {
+        throw new UnsupportedOperationException();
+    }
+
+
+    @Override
+    public void detachMediaRecorder(MediaRecorder recorder) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         final Camera camera = mCameraView.openCameraIfNeeded();
         if (camera == null) return;
@@ -69,7 +81,7 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
     }
 
     private void updateSurface(final Camera camera, final int width, final int height) {
-        if (camera == null) return;
+        if (camera == null || width == 0 || height == 0) return;
         final Camera.Size size = camera.getParameters().getPreviewSize();
         final int rotation = CameraUtils.getDisplayRotation(mCameraView.getContext());
         final boolean isPortrait;

@@ -141,7 +141,8 @@ public class CameraView extends ViewGroup {
         final MediaRecorder recorder = new MediaRecorder();
         setCurrentMediaRecorder(recorder);
         final Thread recordThread = new Thread(new RecordVideoRunnable(this, recorder, config, callback));
-        recordThread.start();
+//        recordThread.start();
+        recordThread.run();
         return new VideoRecordTransaction(this, config, callback);
     }
 
@@ -240,7 +241,7 @@ public class CameraView extends ViewGroup {
     }
 
     protected Preview createPreview() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN)
             return new SurfacePreview(this);
         return new TexturePreview(this);
     }
@@ -433,6 +434,7 @@ public class CameraView extends ViewGroup {
                 return;
             }
             try {
+                cameraView.detachMediaRecorder(recorder);
                 recorder.stop();
                 recorder.reset();
                 recorder.release();
@@ -445,6 +447,7 @@ public class CameraView extends ViewGroup {
                 try {
                     camera.reconnect();
                 } catch (IOException e) {
+                    Log.w(LOGTAG, e);
                 }
                 camera.startPreview();
             }
@@ -525,27 +528,43 @@ public class CameraView extends ViewGroup {
                 recorder.setAudioSource(config.audioSource);
                 recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
                 recorder.setProfile(config.profile);
-                config.applyOutputFile(recorder);
                 recorder.setOrientationHint(cameraView.getVideoRotation());
                 if (config.maxDuration != 0) {
                     recorder.setMaxDuration(config.maxDuration);
                 }
+                config.applyOutputFile(recorder);
+
+                cameraView.attachMediaRecorder(recorder);
                 recorder.prepare();
                 recorder.start();
                 cameraView.mVideoRecordStarted = true;
                 cameraView.post(new NotifyRecordStartRunnable(callback));
             } catch (Exception e) {
                 cameraView.mVideoRecordStarted = false;
+                cameraView.detachMediaRecorder(recorder);
                 recorder.reset();
                 recorder.release();
                 camera.lock();
                 cameraView.setCurrentMediaRecorder(null);
                 cameraView.post(new NotifyRecordFailedRunnable(callback, e));
-//                Log.e(Constants.LOGTAG, "Error recording video", e);
             }
         }
 
 
+    }
+
+    private void detachMediaRecorder(MediaRecorder recorder) {
+        final Preview preview = mPreview;
+        if (preview != null) {
+            preview.detachMediaRecorder(recorder);
+        }
+    }
+
+    private void attachMediaRecorder(MediaRecorder recorder) {
+        final Preview preview = mPreview;
+        if (preview != null) {
+            preview.attachMediaRecorder(recorder);
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
@@ -560,7 +579,7 @@ public class CameraView extends ViewGroup {
 
         VideoRecordConfig(int cameraId) {
             setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-            setProfile(CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH));
+            setProfile(CameraUtils.getDefaultVideoProfile(cameraId));
         }
 
         public String getOutputPath() {

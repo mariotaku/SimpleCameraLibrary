@@ -91,6 +91,18 @@ public final class CameraUtils {
         return display.getRotation();
     }
 
+    public static CamcorderProfile getDefaultVideoProfile(int cameraId) {
+        final int[] qualities = {CamcorderProfile.QUALITY_HIGH, CamcorderProfile.QUALITY_1080P,
+                CamcorderProfile.QUALITY_720P, CamcorderProfile.QUALITY_480P,
+                CamcorderProfile.QUALITY_CIF, CamcorderProfile.QUALITY_LOW};
+        for (int quality : qualities) {
+            if (CamcorderProfile.hasProfile(cameraId, quality)) {
+                return CamcorderProfile.get(cameraId, quality);
+            }
+        }
+        return null;
+    }
+
     public static CamcorderProfile getBestVideoProfile(int cameraId, int width, int height, int rotation) {
         final int[] qualities = {CamcorderProfile.QUALITY_LOW, CamcorderProfile.QUALITY_CIF,
                 CamcorderProfile.QUALITY_480P, CamcorderProfile.QUALITY_720P,
