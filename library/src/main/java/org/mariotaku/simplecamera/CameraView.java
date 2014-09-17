@@ -288,7 +288,7 @@ public class CameraView extends ViewGroup {
         return parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO);
     }
 
-    private boolean touchFocus(MotionEvent event, Camera.AutoFocusCallback callback) {
+    public boolean touchFocus(MotionEvent event, Camera.AutoFocusCallback callback) {
         if (mAutoFocusing) return false;
         final RectF cameraBounds = new RectF(), cameraDisplayBounds = new RectF();
         final Camera camera = getOpeningCamera();
