@@ -1,5 +1,6 @@
 package org.mariotaku.simplecamera;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -8,6 +9,7 @@ import android.graphics.RectF;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -129,6 +131,7 @@ public class CameraView extends ViewGroup {
         return CameraUtils.getPictureRotation(CameraUtils.getDisplayRotation(getContext()), mOpeningCameraId);
     }
 
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     public VideoRecordTransaction recordVideo(VideoRecordConfig config, VideoRecordCallback callback) {
         if (mRecorder != null) {
             throw new IllegalStateException();
@@ -236,6 +239,8 @@ public class CameraView extends ViewGroup {
     }
 
     protected Preview createPreview() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+            return new SurfacePreview(this);
         return new TexturePreview(this);
     }
 
@@ -283,7 +288,7 @@ public class CameraView extends ViewGroup {
         return parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO);
     }
 
-    public boolean touchFocus(MotionEvent event, Camera.AutoFocusCallback callback) {
+    private boolean touchFocus(MotionEvent event, Camera.AutoFocusCallback callback) {
         if (mAutoFocusing) return false;
         final RectF cameraBounds = new RectF(), cameraDisplayBounds = new RectF();
         final Camera camera = getOpeningCamera();
@@ -293,6 +298,7 @@ public class CameraView extends ViewGroup {
         final Camera.Parameters parameters = camera.getParameters();
         if (!parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO))
             return false;
+
         final int maxFocusAreas = parameters.getMaxNumFocusAreas(), maxMeteringAreas = parameters.getMaxNumMeteringAreas();
         final ArrayList<Camera.Area> areas = new ArrayList<Camera.Area>();
         if (event != null && maxFocusAreas > 0 && maxMeteringAreas > 0) {
@@ -390,6 +396,7 @@ public class CameraView extends ViewGroup {
         void onCameraOpeningError(Exception e);
     }
 
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     public static final class VideoRecordTransaction {
 
         private final CameraView cameraView;
@@ -456,6 +463,7 @@ public class CameraView extends ViewGroup {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     private static class RecordVideoRunnable implements Runnable {
 
         private final CameraView cameraView;
@@ -535,6 +543,7 @@ public class CameraView extends ViewGroup {
 
     }
 
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     public static final class VideoRecordConfig {
 
         private CamcorderProfile profile;

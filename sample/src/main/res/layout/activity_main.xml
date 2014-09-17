@@ -10,7 +10,7 @@
         android:layout_gravity="center"
         android:animateLayoutChanges="true">
 
-        <org.mariotaku.simplecamera.sample.MyCameraView
+        <org.mariotaku.simplecamera.CameraView
             android:id="@+id/camera_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>

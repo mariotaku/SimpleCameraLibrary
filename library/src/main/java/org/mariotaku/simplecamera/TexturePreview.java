@@ -1,17 +1,19 @@
 package org.mariotaku.simplecamera;
 
+import android.annotation.TargetApi;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.os.Build;
 import android.view.Surface;
 import android.view.TextureView;
-import android.view.View;
 
 import java.io.IOException;
 
 /**
  * Created by mariotaku on 14-9-9.
  */
+@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class TexturePreview implements Preview, TextureView.SurfaceTextureListener {
 
     private final CameraView mCameraView;
