@@ -19,12 +19,10 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
     private final CameraView mCameraView;
     private final SurfaceView mSurfaceView;
 
-    @SuppressWarnings("deprecation")
     public SurfacePreview(CameraView cameraView) {
         mCameraView = cameraView;
         mSurfaceView = new SurfaceView(cameraView.getContext());
         final SurfaceHolder holder = mSurfaceView.getHolder();
-        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         holder.addCallback(this);
     }
 
@@ -76,7 +74,6 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        holder.setFormat(PixelFormat.TRANSLUCENT);
         final Camera camera = mCameraView.openCameraIfNeeded();
         if (camera == null) return;
         try {

@@ -55,6 +55,7 @@ public final class CameraUtils {
     }
 
     public static Point getLargestSize(final List<Camera.Size> list) {
+        if (list == null || list.isEmpty()) return null;
         final ArrayList<Camera.Size> sorted = new ArrayList<>(list);
         Collections.sort(sorted, CAMERA_SIZE_COMPARATOR);
         final Camera.Size size = sorted.get(sorted.size() - 1);
@@ -62,7 +63,7 @@ public final class CameraUtils {
     }
 
     public static Point getBestSize(final List<Camera.Size> list, final int width, final int height, int rotation) {
-        if (list.isEmpty()) return null;
+        if (list == null || list.isEmpty()) return null;
         final boolean swap = rotation % 180 != 0;
         final int requiredWidth = swap ? height : width, requiredHeight = swap ? width : height;
         final ArrayList<Camera.Size> sorted = new ArrayList<>(list);
