@@ -199,25 +199,6 @@ public class CameraView extends ViewGroup {
         super.requestLayout();
     }
 
-    private void setPreviewSize(Camera.Parameters parameters, int width, int height, int rotation) {
-        final List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-        final Point overrideMeasureSize = getOverrideMeasureSize();
-        final Point previewSize;
-        if (overrideMeasureSize != null) {
-            previewSize = CameraUtils.getBestSize(previewSizes, overrideMeasureSize.x,
-                    overrideMeasureSize.y, rotation);
-        } else {
-            previewSize = CameraUtils.getBestSize(previewSizes, width, height,
-                    rotation);
-        }
-        if (previewSize != null) {
-            parameters.setPreviewSize(previewSize.x, previewSize.y);
-        } else {
-            final Point largest = CameraUtils.getLargestSize(previewSizes);
-            parameters.setPreviewSize(largest.x, largest.y);
-        }
-    }
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -231,7 +212,8 @@ public class CameraView extends ViewGroup {
             camera.stopPreview();
             final Camera.Parameters parameters = camera.getParameters();
             final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
-            setPreviewSize(parameters, measuredWidth, measuredHeight, rotation);
+            final Point previewSize = getPreviewSize(parameters, measuredWidth, measuredHeight, rotation);
+            parameters.setPreviewSize(previewSize.x, previewSize.y);
             camera.setDisplayOrientation(rotation);
 //            parameters.setRotation(rotation);
             camera.setParameters(parameters);
@@ -241,6 +223,21 @@ public class CameraView extends ViewGroup {
         final View child = getChildAt(0);
         if (child == null) return;
         measureChild(child, widthMeasureSpec, heightMeasureSpec);
+    }
+
+    private Point getPreviewSize(Camera.Parameters parameters, int width, int height, int rotation) {
+        final List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+        final Point overrideMeasureSize = getOverrideMeasureSize();
+        final Point previewSize;
+        if (overrideMeasureSize != null) {
+            previewSize = CameraUtils.getBestSize(previewSizes, overrideMeasureSize.x,
+                    overrideMeasureSize.y, rotation);
+        } else {
+            previewSize = CameraUtils.getBestSize(previewSizes, width, height,
+                    rotation);
+        }
+        if (previewSize != null) return previewSize;
+        return CameraUtils.getLargestSize(previewSizes);
     }
 
     @Override
@@ -402,6 +399,31 @@ public class CameraView extends ViewGroup {
         return CameraUtils.getPictureRotation(CameraUtils.getDisplayRotation(getContext()), mOpeningCameraId);
     }
 
+    private void notifyPreviewSizeChanged() {
+        final Preview preview = getPreview();
+        if (preview == null) return;
+        preview.notifyPreviewSizeChanged();
+    }
+
+    private boolean shouldSetSizeForRecorder() {
+        final Preview preview = getPreview();
+        return preview != null && preview.shouldSetSizeForRecorder();
+    }
+
+    private void detachMediaRecorder(MediaRecorder recorder) {
+        final Preview preview = getPreview();
+        if (preview != null) {
+            preview.detachMediaRecorder(recorder);
+        }
+    }
+
+    private void attachMediaRecorder(MediaRecorder recorder) {
+        final Preview preview = getPreview();
+        if (preview != null) {
+            preview.attachMediaRecorder(recorder);
+        }
+    }
+
     public interface VideoRecordCallback extends MediaRecorder.OnInfoListener {
         void onRecordStarted();
 
@@ -468,7 +490,9 @@ public class CameraView extends ViewGroup {
                     final Camera.Parameters parameters = camera.getParameters();
                     final int width = cameraView.getWidth(), height = cameraView.getHeight();
                     final int rotation = cameraView.getCameraRotation();
-                    cameraView.setPreviewSize(parameters, width, height, rotation);
+                    final Point previewSize = cameraView.getPreviewSize(parameters, width, height,
+                            rotation);
+                    parameters.setPreviewSize(previewSize.x, previewSize.y);
                     camera.startPreview();
                     cameraView.notifyPreviewSizeChanged();
                 }
@@ -491,12 +515,6 @@ public class CameraView extends ViewGroup {
                 callback.onRecordStopped();
             }
         }
-    }
-
-    private void notifyPreviewSizeChanged() {
-        final Preview preview = getPreview();
-        if (preview == null) return;
-        preview.notifyPreviewSizeChanged();
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
@@ -579,25 +597,6 @@ public class CameraView extends ViewGroup {
         }
 
 
-    }
-
-    private boolean shouldSetSizeForRecorder() {
-        final Preview preview = getPreview();
-        return preview != null && preview.shouldSetSizeForRecorder();
-    }
-
-    private void detachMediaRecorder(MediaRecorder recorder) {
-        final Preview preview = getPreview();
-        if (preview != null) {
-            preview.detachMediaRecorder(recorder);
-        }
-    }
-
-    private void attachMediaRecorder(MediaRecorder recorder) {
-        final Preview preview = getPreview();
-        if (preview != null) {
-            preview.attachMediaRecorder(recorder);
-        }
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
