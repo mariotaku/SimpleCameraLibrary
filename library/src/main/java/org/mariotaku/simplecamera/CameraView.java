@@ -146,8 +146,8 @@ public class CameraView extends ViewGroup {
             final Camera.Parameters parameters = camera.getParameters();
             parameters.setPreviewSize(profile.videoFrameWidth, profile.videoFrameHeight);
             camera.setParameters(parameters);
-            notifyPreviewSizeChanged();
             camera.startPreview();
+            notifyPreviewSizeChanged();
         }
         final Thread recordThread = new Thread(new RecordVideoRunnable(this, recorder, config, callback));
         recordThread.start();
