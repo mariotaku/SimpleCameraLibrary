@@ -469,8 +469,8 @@ public class CameraView extends ViewGroup {
                     final int width = cameraView.getWidth(), height = cameraView.getHeight();
                     final int rotation = cameraView.getCameraRotation();
                     cameraView.setPreviewSize(parameters, width, height, rotation);
-                    cameraView.notifyPreviewSizeChanged();
                     camera.startPreview();
+                    cameraView.notifyPreviewSizeChanged();
                 }
             }
             cameraView.post(new NotifyRecordStopRunnable(callback));
