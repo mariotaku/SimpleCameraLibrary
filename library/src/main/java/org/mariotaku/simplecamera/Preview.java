@@ -19,4 +19,8 @@ public interface Preview {
     void attachMediaRecorder(MediaRecorder recorder);
 
     void detachMediaRecorder(MediaRecorder recorder);
+
+    boolean shouldSetSizeForRecorder();
+
+    void notifyPreviewSizeChanged();
 }

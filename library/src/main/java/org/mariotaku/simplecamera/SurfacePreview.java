@@ -19,10 +19,13 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
     private final CameraView mCameraView;
     private final SurfaceView mSurfaceView;
 
+    @SuppressWarnings("deprecation")
     public SurfacePreview(CameraView cameraView) {
         mCameraView = cameraView;
         mSurfaceView = new SurfaceView(cameraView.getContext());
-        mSurfaceView.getHolder().addCallback(this);
+        final SurfaceHolder holder = mSurfaceView.getHolder();
+        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        holder.addCallback(this);
     }
 
     @Override
@@ -33,8 +36,7 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
     @Override
     public void layoutPreview(boolean changed, int l, int t, int r, int b) {
 //        mSurfaceView.layout(0, 0, mCameraView.getMeasuredWidth(), mCameraView.getMeasuredHeight());
-        final Camera camera = mCameraView.getOpeningCamera();
-        updateSurface(camera, mSurfaceView.getHolder(), mSurfaceView.getMeasuredWidth(), mSurfaceView.getMeasuredHeight());
+        notifyPreviewSizeChanged();
     }
 
     @Override
@@ -59,6 +61,17 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
             camera.setPreviewDisplay(mSurfaceView.getHolder());
         } catch (IOException e) {
         }
+    }
+
+    @Override
+    public boolean shouldSetSizeForRecorder() {
+        return true;
+    }
+
+    @Override
+    public void notifyPreviewSizeChanged() {
+        final Camera camera = mCameraView.getOpeningCamera();
+        updateSurface(camera, mSurfaceView.getHolder(), mSurfaceView.getMeasuredWidth(), mSurfaceView.getMeasuredHeight());
     }
 
     @Override
@@ -96,7 +109,6 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
         final int cameraWidth = isPortrait ? size.height : size.width;
         final int cameraHeight = isPortrait ? size.width : size.height;
         final float viewRatio = (float) width / height, cameraRatio = (float) cameraWidth / cameraHeight;
-        final Matrix transform = new Matrix();
         final int actualW, actualH;
         if (viewRatio > cameraRatio) {
             // fit width

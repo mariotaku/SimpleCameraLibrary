@@ -34,8 +34,7 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
     @Override
     public void layoutPreview(boolean changed, int l, int t, int r, int b) {
         mTextureView.layout(0, 0, mTextureView.getMeasuredWidth(), mTextureView.getMeasuredHeight());
-        final Camera camera = mCameraView.getOpeningCamera();
-        updateSurface(camera, mTextureView.getMeasuredWidth(), mTextureView.getMeasuredHeight());
+        notifyPreviewSizeChanged();
     }
 
     @Override
@@ -62,6 +61,17 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
     @Override
     public void detachMediaRecorder(MediaRecorder recorder) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean shouldSetSizeForRecorder() {
+        return false;
+    }
+
+    @Override
+    public void notifyPreviewSizeChanged() {
+        final Camera camera = mCameraView.getOpeningCamera();
+        updateSurface(camera, mTextureView.getMeasuredWidth(), mTextureView.getMeasuredHeight());
     }
 
     @Override
@@ -115,7 +125,7 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
 
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-        mCameraView.requestLayout();
+        notifyPreviewSizeChanged();
     }
 
     @Override

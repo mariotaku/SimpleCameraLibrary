@@ -211,12 +211,23 @@ public class MainActivity extends Activity implements CameraView.CameraListener,
                 final CameraView.VideoRecordConfig config = mCameraView.newVideoRecordConfig();
                 if (config == null) return;
                 final File extCacheDir = getExternalCacheDir();
-                if (extCacheDir != null) {
-                    config.setOutputPath(new File(extCacheDir, System.currentTimeMillis() + ".mp4").getAbsolutePath());
-                } else {
-                    config.setOutputPath(new File(getCacheDir(), System.currentTimeMillis() + ".mp4").getAbsolutePath());
+                final String suffix;
+                switch (config.getProfile().fileFormat) {
+                    case MediaRecorder.OutputFormat.THREE_GPP: {
+                        suffix = "3gp";
+                        break;
+                    }
+                    default: {
+                        suffix = "mp4";
+                        break;
+                    }
                 }
-                config.setMaxDuration(10000);
+                if (extCacheDir != null) {
+                    config.setOutputPath(new File(extCacheDir, System.currentTimeMillis() + "." + suffix).getAbsolutePath());
+                } else {
+                    config.setOutputPath(new File(getCacheDir(), System.currentTimeMillis() + "." + suffix).getAbsolutePath());
+                }
+//                config.setMaxDuration(10000);
                 mRecordVideoTransaction = mCameraView.recordVideo(config, new CameraView.VideoRecordCallback() {
                     @Override
                     public void onRecordStarted() {
