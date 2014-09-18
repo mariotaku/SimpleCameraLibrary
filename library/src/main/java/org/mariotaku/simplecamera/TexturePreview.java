@@ -54,12 +54,14 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
 
     @Override
     public void attachMediaRecorder(MediaRecorder recorder) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN)
         throw new UnsupportedOperationException();
     }
 
 
     @Override
     public void detachMediaRecorder(MediaRecorder recorder) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN)
         throw new UnsupportedOperationException();
     }
 
