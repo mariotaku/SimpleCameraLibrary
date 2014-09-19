@@ -49,7 +49,7 @@ public class CameraView extends ViewGroup {
 
     public CameraView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        setClipChildren(false);
+//        setClipChildren(false);
         mOpeningCameraId = -1;
         mRequiredCameraId = getDefaultCameraId();
     }
