@@ -1,9 +1,8 @@
 package org.mariotaku.simplecamera;
 
-import android.graphics.Matrix;
-import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -34,7 +33,7 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
     @Override
     public void layoutPreview(boolean changed, int l, int t, int r, int b) {
 //        mSurfaceView.layout(0, 0, mCameraView.getMeasuredWidth(), mCameraView.getMeasuredHeight());
-        notifyPreviewSizeChanged();
+        notifyPreviewSizeChanged(r - l, b - t);
     }
 
     @Override
@@ -55,9 +54,11 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
     @Override
     public void detachMediaRecorder(MediaRecorder recorder) {
         final Camera camera = mCameraView.getOpeningCamera();
+        if (camera == null) return;
         try {
             camera.setPreviewDisplay(mSurfaceView.getHolder());
         } catch (IOException e) {
+            Log.w(CameraView.LOGTAG, e);
         }
     }
 
@@ -67,9 +68,22 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
     }
 
     @Override
-    public void notifyPreviewSizeChanged() {
+    public void notifyPreviewSizeChanged(int width, int height) {
         final Camera camera = mCameraView.getOpeningCamera();
-        updateSurface(camera, mSurfaceView.getHolder(), mSurfaceView.getMeasuredWidth(), mSurfaceView.getMeasuredHeight());
+        if (camera == null) return;
+        final SurfaceHolder holder = mSurfaceView.getHolder();
+        if (width != 0 && height != 0) {
+            updateSurface(camera, holder, width, height);
+            return;
+        }
+        final int viewWidth = mSurfaceView.getWidth(), viewHeight = mSurfaceView.getHeight();
+        if (viewWidth != 0 && viewHeight != 0) {
+            updateSurface(camera, holder, viewWidth, viewHeight);
+        } else {
+            final int measuredWidth = mSurfaceView.getMeasuredWidth();
+            final int measuredHeight = mSurfaceView.getMeasuredHeight();
+            updateSurface(camera, holder, measuredWidth, measuredHeight);
+        }
     }
 
     @Override

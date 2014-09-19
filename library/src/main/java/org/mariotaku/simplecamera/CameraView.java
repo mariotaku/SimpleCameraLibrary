@@ -147,7 +147,7 @@ public class CameraView extends ViewGroup {
             parameters.setPreviewSize(profile.videoFrameWidth, profile.videoFrameHeight);
             camera.setParameters(parameters);
             camera.startPreview();
-            notifyPreviewSizeChanged();
+            notifyPreviewSizeChanged(0, 0);
         }
         final Thread recordThread = new Thread(new RecordVideoRunnable(this, recorder, config, callback));
         recordThread.start();
@@ -399,10 +399,10 @@ public class CameraView extends ViewGroup {
         return CameraUtils.getPictureRotation(CameraUtils.getDisplayRotation(getContext()), mOpeningCameraId);
     }
 
-    private void notifyPreviewSizeChanged() {
+    private void notifyPreviewSizeChanged(int width, int height) {
         final Preview preview = getPreview();
         if (preview == null) return;
-        preview.notifyPreviewSizeChanged();
+        preview.notifyPreviewSizeChanged(width, height);
     }
 
     private boolean shouldSetSizeForRecorder() {
@@ -494,7 +494,7 @@ public class CameraView extends ViewGroup {
                             rotation);
                     parameters.setPreviewSize(previewSize.x, previewSize.y);
                     camera.startPreview();
-                    cameraView.notifyPreviewSizeChanged();
+                    cameraView.notifyPreviewSizeChanged(0, 0);
                 }
             }
             cameraView.post(new NotifyRecordStopRunnable(callback));
@@ -565,9 +565,9 @@ public class CameraView extends ViewGroup {
 
         @Override
         public void run() {
-            final Camera camera = cameraView.getOpeningCamera();
-            if (camera == null) return;
             try {
+                final Camera camera = cameraView.getOpeningCamera();
+                if (camera == null) return;
                 camera.unlock();
                 recorder.setCamera(camera);
                 recorder.setOnInfoListener(callback);
@@ -590,7 +590,10 @@ public class CameraView extends ViewGroup {
                 cameraView.detachMediaRecorder(recorder);
                 recorder.reset();
                 recorder.release();
-                camera.lock();
+                final Camera camera = cameraView.getOpeningCamera();
+                if (camera != null) {
+                    camera.lock();
+                }
                 cameraView.setCurrentMediaRecorder(null);
                 cameraView.post(new NotifyRecordFailedRunnable(callback, e));
             }

@@ -22,5 +22,5 @@ public interface Preview {
 
     boolean shouldSetSizeForRecorder();
 
-    void notifyPreviewSizeChanged();
+    void notifyPreviewSizeChanged(int width, int height);
 }

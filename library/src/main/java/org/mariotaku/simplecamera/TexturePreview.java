@@ -33,8 +33,10 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
 
     @Override
     public void layoutPreview(boolean changed, int l, int t, int r, int b) {
-        mTextureView.layout(0, 0, mTextureView.getMeasuredWidth(), mTextureView.getMeasuredHeight());
-        notifyPreviewSizeChanged();
+        final int measuredWidth = mTextureView.getMeasuredWidth();
+        final int measuredHeight = mTextureView.getMeasuredHeight();
+        mTextureView.layout(0, 0, measuredWidth, measuredHeight);
+        notifyPreviewSizeChanged(measuredWidth, measuredHeight);
     }
 
     @Override
@@ -55,14 +57,14 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
     @Override
     public void attachMediaRecorder(MediaRecorder recorder) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN)
-        throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException();
     }
 
 
     @Override
     public void detachMediaRecorder(MediaRecorder recorder) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN)
-        throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException();
     }
 
     @Override
@@ -71,9 +73,20 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
     }
 
     @Override
-    public void notifyPreviewSizeChanged() {
+    public void notifyPreviewSizeChanged(int width, int height) {
         final Camera camera = mCameraView.getOpeningCamera();
-        updateSurface(camera, mTextureView.getMeasuredWidth(), mTextureView.getMeasuredHeight());
+        if (width != 0 && height != 0) {
+            updateSurface(camera, width, height);
+            return;
+        }
+        final int viewWidth = mTextureView.getWidth(), viewHeight = mTextureView.getHeight();
+        if (viewWidth != 0 && viewHeight != 0) {
+            updateSurface(camera, viewWidth, viewHeight);
+        } else {
+            final int measuredWidth = mTextureView.getMeasuredWidth();
+            final int measuredHeight = mTextureView.getMeasuredHeight();
+            updateSurface(camera, measuredWidth, measuredHeight);
+        }
     }
 
     @Override
@@ -127,7 +140,7 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
 
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-        notifyPreviewSizeChanged();
+        notifyPreviewSizeChanged(0, 0);
     }
 
     @Override
