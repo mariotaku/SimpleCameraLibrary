@@ -13,7 +13,7 @@
         <org.mariotaku.simplecamera.CameraView
             android:id="@+id/camera_view"
             android:layout_width="match_parent"
-            android:layout_height="300dp"/>
+            android:layout_height="match_parent"/>
 
         <org.mariotaku.simplecamera.sample.FocusAreaView
             android:id="@+id/focus_area"
