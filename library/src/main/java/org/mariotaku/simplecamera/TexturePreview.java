@@ -105,6 +105,21 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
         }
     }
 
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        notifyPreviewSizeChanged(0, 0);
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        mCameraView.releaseCamera();
+        return true;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+    }
+
     private void updateSurface(final Camera camera, final int width, final int height) {
         if (camera == null || width == 0 || height == 0) return;
         final Camera.Size size = camera.getParameters().getPreviewSize();
@@ -136,21 +151,6 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
         }
         transform.postTranslate(translateX, translateY);
         mTextureView.setTransform(transform);
-    }
-
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-        notifyPreviewSizeChanged(0, 0);
-    }
-
-    @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-        mCameraView.releaseCamera();
-        return true;
-    }
-
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
     }
 
 }

@@ -145,6 +145,7 @@ public class CameraView extends ViewGroup {
             final CamcorderProfile profile = config.profile;
             final Camera.Parameters parameters = camera.getParameters();
             parameters.setPreviewSize(profile.videoFrameWidth, profile.videoFrameHeight);
+            dispatchSetParameterBeforeStartPreview(camera, parameters);
             camera.setParameters(parameters);
             camera.startPreview();
             notifyPreviewSizeChanged(0, 0);
@@ -153,6 +154,12 @@ public class CameraView extends ViewGroup {
         recordThread.start();
 //        recordThread.run();
         return new VideoRecordTransaction(this, config, callback);
+    }
+
+    private void dispatchSetParameterBeforeStartPreview(Camera camera, Camera.Parameters parameters) {
+        if (mListener != null) {
+            mListener.setParameterBeforeStartPreview(camera, parameters);
+        }
     }
 
     public Camera.Size getPreviewSize() {
@@ -216,6 +223,7 @@ public class CameraView extends ViewGroup {
             parameters.setPreviewSize(previewSize.x, previewSize.y);
             camera.setDisplayOrientation(rotation);
 //            parameters.setRotation(rotation);
+            dispatchSetParameterBeforeStartPreview(camera, parameters);
             camera.setParameters(parameters);
             camera.startPreview();
             mCameraRotation = rotation;
@@ -436,6 +444,8 @@ public class CameraView extends ViewGroup {
         void onCameraInitialized(Camera camera);
 
         void onCameraOpeningError(Exception e);
+
+        void setParameterBeforeStartPreview(Camera camera, Camera.Parameters parameters);
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
@@ -485,15 +495,19 @@ public class CameraView extends ViewGroup {
                 } catch (IOException e) {
                     Log.w(LOGTAG, e);
                 }
+                camera.stopPreview();
+                final Camera.Parameters parameters = camera.getParameters();
                 if (cameraView.shouldSetSizeForRecorder()) {
-                    camera.stopPreview();
-                    final Camera.Parameters parameters = camera.getParameters();
                     final int width = cameraView.getWidth(), height = cameraView.getHeight();
                     final int rotation = cameraView.getCameraRotation();
                     final Point previewSize = cameraView.getPreviewSize(parameters, width, height,
                             rotation);
                     parameters.setPreviewSize(previewSize.x, previewSize.y);
-                    camera.startPreview();
+                }
+                cameraView.dispatchSetParameterBeforeStartPreview(camera, parameters);
+                camera.setParameters(parameters);
+                camera.startPreview();
+                if (cameraView.shouldSetSizeForRecorder()) {
                     cameraView.notifyPreviewSizeChanged(0, 0);
                 }
             }
