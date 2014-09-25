@@ -51,14 +51,14 @@ public class CameraView extends ViewGroup {
         super(context, attrs, defStyle);
 //        setClipChildren(false);
         mOpeningCameraId = -1;
-        mRequiredCameraId = getDefaultCameraId();
+        mRequiredCameraId = -1;
     }
 
     public Preview getPreview() {
         return mPreview;
     }
 
-    private int getDefaultCameraId() {
+    public int getDefaultCameraId() {
         return 0;
     }
 
@@ -73,8 +73,10 @@ public class CameraView extends ViewGroup {
     }
 
     private void restartPreview() {
+        final int requiredCameraId = mRequiredCameraId;
         removeAllViews();
         initPreview();
+        mRequiredCameraId = requiredCameraId;
     }
 
     public void openCamera(int cameraId) {
@@ -86,10 +88,12 @@ public class CameraView extends ViewGroup {
     private Camera openCameraSafely(final int cameraId) {
         if (cameraId < 0) throw new IllegalStateException();
         final Camera oldCamera = mOpeningCamera;
+        final int requiredCameraId = mRequiredCameraId;
         if (oldCamera != null) {
             if (mOpeningCameraId == cameraId) return oldCamera;
             releaseCamera();
         }
+        mRequiredCameraId = requiredCameraId;
         try {
             final Camera camera = Camera.open(cameraId);
             mOpeningCameraId = cameraId;
@@ -279,6 +283,8 @@ public class CameraView extends ViewGroup {
         }
         camera.release();
         mOpeningCamera = null;
+        mPreview = null;
+        mRequiredCameraId = -1;
     }
 
     public boolean isCameraAvailable() {
@@ -291,6 +297,7 @@ public class CameraView extends ViewGroup {
 
     Camera openCameraIfNeeded() {
         if (mOpeningCamera != null) return mOpeningCamera;
+        if (mRequiredCameraId == -1) return null;
         return openCameraSafely(mRequiredCameraId);
     }
 
