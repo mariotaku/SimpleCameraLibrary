@@ -43,20 +43,22 @@ public class LayerPaintActivity extends Activity implements View.OnClickListener
 
     @Override
     public void onCameraInitialized(Camera camera) {
-        final Camera.Parameters parameters = camera.getParameters();
-        final List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
-        Collections.sort(fpsRanges, Utils.FPS_RANGE_COMPARATOR);
-        if (!fpsRanges.isEmpty()) {
-            final int[] fpsRange = fpsRanges.get(0);
-            parameters.setPreviewFpsRange(fpsRange[0], fpsRange[1]);
-        }
-        camera.setParameters(parameters);
 
     }
 
     @Override
     public void onCameraOpeningError(Exception e) {
 
+    }
+
+    @Override
+    public void setParameterBeforeStartPreview(Camera camera, Camera.Parameters parameters) {
+        final List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
+        Collections.sort(fpsRanges, Utils.FPS_RANGE_COMPARATOR);
+        if (!fpsRanges.isEmpty()) {
+            final int[] fpsRange = fpsRanges.get(0);
+            parameters.setPreviewFpsRange(fpsRange[0], fpsRange[1]);
+        }
     }
 
 

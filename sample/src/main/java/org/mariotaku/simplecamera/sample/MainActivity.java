@@ -74,14 +74,6 @@ public class MainActivity extends Activity implements CameraView.CameraListener,
 
     @Override
     public void onCameraInitialized(Camera camera) {
-        final Camera.Parameters parameters = camera.getParameters();
-        final List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
-        Collections.sort(fpsRanges, Utils.FPS_RANGE_COMPARATOR);
-        if (!fpsRanges.isEmpty()) {
-            final int[] fpsRange = fpsRanges.get(0);
-            parameters.setPreviewFpsRange(fpsRange[0], fpsRange[1]);
-        }
-        camera.setParameters(parameters);
 
         findViewById(R.id.front_camera).setVisibility(Camera.getNumberOfCameras() > 1 ? View.VISIBLE : View.GONE);
     }
@@ -89,6 +81,16 @@ public class MainActivity extends Activity implements CameraView.CameraListener,
     @Override
     public void onCameraOpeningError(Exception e) {
         Toast.makeText(this, "Failed to open camera", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void setParameterBeforeStartPreview(Camera camera, Camera.Parameters parameters) {
+        final List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
+        Collections.sort(fpsRanges, Utils.FPS_RANGE_COMPARATOR);
+        if (!fpsRanges.isEmpty()) {
+            final int[] fpsRange = fpsRanges.get(0);
+            parameters.setPreviewFpsRange(fpsRange[0], fpsRange[1]);
+        }
     }
 
     @Override

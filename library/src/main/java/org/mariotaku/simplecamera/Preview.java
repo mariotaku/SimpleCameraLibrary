@@ -8,6 +8,10 @@ import android.view.View;
  * Created by mariotaku on 14-9-9.
  */
 public interface Preview {
+    /**
+     *
+     * @return View for camera preview
+     */
     View getView();
 
     void layoutPreview(boolean changed, int l, int t, int r, int b);

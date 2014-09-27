@@ -62,6 +62,14 @@ public class CameraView extends ViewGroup {
         return 0;
     }
 
+    /**
+     * Pictures taken by this library will remain original, so you need to rotate or add EXIF tag by
+     * yourself.
+     * <br/>
+     * This method returns the rotate angle you needed for post-processing.
+     *
+     * @return The rotate angle for post-processing of taken picture
+     */
     public int getCameraRotation() {
         return mCameraRotation;
     }
@@ -79,6 +87,13 @@ public class CameraView extends ViewGroup {
         mRequiredCameraId = requiredCameraId;
     }
 
+    /**
+     * Opens camera with specified ID and starts preview, if the Camera with your specified ID has
+     * already opened, your method call will be ignored.
+     *
+     * @param cameraId ID of the Camera
+     * @see android.hardware.Camera#open(int)
+     */
     public void openCamera(int cameraId) {
         if (mOpeningCameraId == cameraId) return;
         mRequiredCameraId = cameraId;
@@ -114,13 +129,15 @@ public class CameraView extends ViewGroup {
         return null;
     }
 
+    /**
+     * Creates a new {@link VideoRecordConfig}
+     *
+     * @return A new {@link VideoRecordConfig} for
+     * {@link #recordVideo(VideoRecordConfig, VideoRecordCallback)}
+     */
     public VideoRecordConfig newVideoRecordConfig() {
         if (mOpeningCameraId == -1) return null;
         return new VideoRecordConfig(mOpeningCameraId);
-    }
-
-    public void setAutoFocusing(boolean autoFocusing) {
-        this.mAutoFocusing = autoFocusing;
     }
 
     private MediaRecorder getCurrentMediaRecorder() {
@@ -313,6 +330,10 @@ public class CameraView extends ViewGroup {
         return mAutoFocusing;
     }
 
+    public void setAutoFocusing(boolean autoFocusing) {
+        this.mAutoFocusing = autoFocusing;
+    }
+
     public boolean isAutoFocusSupported() {
         final Camera camera = getOpeningCamera();
         if (camera == null) return false;
@@ -395,18 +416,32 @@ public class CameraView extends ViewGroup {
         return true;
     }
 
+    /**
+     * Convenience call of <code>getOpeningCamera().takePicture(shutter, null, jpeg)</code>
+     *
+     * @param shutter the callback for image capture moment, or null
+     * @param jpeg    the callback for JPEG image data, or null
+     */
     public void takePicture(final Camera.ShutterCallback shutter, final Camera.PictureCallback jpeg) {
         final Camera camera = getOpeningCamera();
         if (camera == null) return;
         camera.takePicture(shutter, null, new InternalPictureCallback(jpeg, mSingleShot));
     }
 
-    public void setSingleShot(boolean singleShot) {
-        mSingleShot = singleShot;
-    }
-
+    /**
+     * @return Whether CameraView is in single shot mode
+     */
     public boolean isSingleShot() {
         return mSingleShot;
+    }
+
+    /**
+     * Set single shot mode, if set to true, camera preview will stop.
+     *
+     * @param singleShot Preview will stop after picture taken if true
+     */
+    public void setSingleShot(boolean singleShot) {
+        mSingleShot = singleShot;
     }
 
     public int getPictureRotation() {
@@ -642,18 +677,85 @@ public class CameraView extends ViewGroup {
             return outputPath;
         }
 
+        /**
+         * Sets the path of the output file to be produced.
+         *
+         * @param outputPath The pathname to use.
+         * @see {@link android.media.MediaRecorder#setOutputFile(java.lang.String)}
+         */
+        public void setOutputPath(String outputPath) {
+            checkReadable();
+            this.outputPath = outputPath;
+        }
+
+        /**
+         * Returns the file descriptor of the file to be written.
+         *
+         * @return The file descriptor to be written into.
+         */
         public FileDescriptor getOutputFileDescriptor() {
             return outputFileDescriptor;
         }
 
+        /**
+         * Pass in the file descriptor of the file to be written.
+         *
+         * @param outputFileDescriptor an open file descriptor to be written into.
+         * @see {@link android.media.MediaRecorder#setOutputFile(java.io.FileDescriptor)}
+         */
+        public void setOutputFileDescriptor(FileDescriptor outputFileDescriptor) {
+            checkReadable();
+            this.outputFileDescriptor = outputFileDescriptor;
+        }
+
+        /**
+         * Gets the audio source to be used for recording.
+         *
+         * @return The audio source to use
+         * @see {@link android.media.MediaRecorder#setAudioSource(int)}
+         */
         public int getAudioSource() {
             return audioSource;
         }
 
+        /**
+         * Sets the audio source to be used for recording.
+         *
+         * @param audioSource the audio source to use
+         * @see android.media.MediaRecorder#setAudioSource(int)
+         */
+        public void setAudioSource(int audioSource) {
+            checkReadable();
+            this.audioSource = audioSource;
+        }
+
+        /**
+         * Gets the {@link android.media.CamcorderProfile} object for recording.
+         *
+         * @return {@link android.media.CamcorderProfile} object for recording.
+         */
         public CamcorderProfile getProfile() {
             return profile;
         }
 
+        /**
+         * Uses the settings from a CamcorderProfile object for recording.
+         * If a time lapse CamcorderProfile is used, audio related source or recording
+         * parameters are ignored.
+         *
+         * @param profile the CamcorderProfile to use
+         * @see android.media.MediaRecorder#setProfile(android.media.CamcorderProfile)
+         * @see android.media.CamcorderProfile
+         */
+        public void setProfile(CamcorderProfile profile) {
+            checkReadable();
+            this.profile = profile;
+        }
+
+        /**
+         * Make this config read-only, any attempt of changing this config after calling this method
+         * will throw an {@link IllegalArgumentException}
+         */
         void setReadOnly() {
             this.readOnly = true;
         }
@@ -662,34 +764,26 @@ public class CameraView extends ViewGroup {
             return maxDuration;
         }
 
+
+        /**
+         * Sets the maximum duration (in ms) of the recording session.
+         * After recording reaches the specified duration, a notification
+         * will be sent to the {@link android.media.MediaRecorder.OnInfoListener}
+         * with a "what" code of {@link android.media.MediaRecorder#MEDIA_RECORDER_INFO_MAX_DURATION_REACHED}
+         * and recording will be stopped. Stopping happens asynchronously, there
+         * is no guarantee that the recorder will have stopped by the time the
+         * listener is notified.
+         *
+         * @param maxDuration the maximum duration in ms (if zero or negative, disables the duration limit)
+         * @see android.media.MediaRecorder#setMaxDuration(int)
+         */
         public void setMaxDuration(int maxDuration) {
             checkReadable();
-
             this.maxDuration = maxDuration;
-        }
-
-        public void setOutputFileDescriptor(FileDescriptor outputFileDescriptor) {
-            checkReadable();
-            this.outputFileDescriptor = outputFileDescriptor;
         }
 
         private void checkReadable() {
             if (readOnly) throw new IllegalArgumentException("Config is read only");
-        }
-
-        public void setOutputPath(String outputPath) {
-            checkReadable();
-            this.outputPath = outputPath;
-        }
-
-        public void setAudioSource(int audioSource) {
-            checkReadable();
-            this.audioSource = audioSource;
-        }
-
-        public void setProfile(CamcorderProfile profile) {
-            checkReadable();
-            this.profile = profile;
         }
 
         void applyOutputFile(MediaRecorder recorder) {
