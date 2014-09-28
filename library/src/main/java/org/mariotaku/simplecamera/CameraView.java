@@ -234,10 +234,12 @@ public class CameraView extends ViewGroup {
         final int measuredHeight = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(measuredWidth, measuredHeight);
         final Preview preview = getPreview();
-        if (preview == null || !preview.isAttachedToCameraView()) return;
+        if (preview == null || !preview.isAddedToCameraView()) return;
         final Camera camera = openCameraIfNeeded();
         if (camera != null && !isInEditMode()) {
-            camera.stopPreview();
+            if (preview.isAttachedToCamera()) {
+                camera.stopPreview();
+            }
             final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
             camera.setDisplayOrientation(rotation);
             final Camera.Parameters parameters = camera.getParameters();
@@ -271,7 +273,7 @@ public class CameraView extends ViewGroup {
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         final Preview preview = getPreview();
-        if (preview == null || !preview.isAttachedToCameraView()) return;
+        if (preview == null || !preview.isAddedToCameraView()) return;
         preview.layoutPreview(changed, l, t, r, b);
     }
 

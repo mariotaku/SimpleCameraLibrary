@@ -9,14 +9,15 @@ import android.view.View;
  */
 public interface Preview {
     /**
-     *
      * @return View for camera preview
      */
     View getView();
 
     void layoutPreview(boolean changed, int l, int t, int r, int b);
 
-    boolean isAttachedToCameraView();
+    boolean isAddedToCameraView();
+
+    boolean isAttachedToCamera();
 
     void onPreReleaseCamera(Camera camera);
 
