@@ -238,11 +238,11 @@ public class CameraView extends ViewGroup {
         final Camera camera = openCameraIfNeeded();
         if (camera != null && !isInEditMode()) {
             camera.stopPreview();
-            final Camera.Parameters parameters = camera.getParameters();
             final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
+            camera.setDisplayOrientation(rotation);
+            final Camera.Parameters parameters = camera.getParameters();
             final Point previewSize = getPreviewSize(parameters, measuredWidth, measuredHeight, rotation);
             parameters.setPreviewSize(previewSize.x, previewSize.y);
-            camera.setDisplayOrientation(rotation);
 //            parameters.setRotation(rotation);
             dispatchSetParameterBeforeStartPreview(camera, parameters);
             camera.setParameters(parameters);
