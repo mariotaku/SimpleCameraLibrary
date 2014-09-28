@@ -243,7 +243,6 @@ public class CameraView extends ViewGroup {
             final Camera.Parameters parameters = camera.getParameters();
             final Point previewSize = getPreviewSize(parameters, measuredWidth, measuredHeight, rotation);
             parameters.setPreviewSize(previewSize.x, previewSize.y);
-//            parameters.setRotation(rotation);
             dispatchSetParameterBeforeStartPreview(camera, parameters);
             camera.setParameters(parameters);
             camera.startPreview();

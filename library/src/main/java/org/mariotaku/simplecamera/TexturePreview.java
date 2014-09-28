@@ -6,7 +6,6 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.os.Build;
-import android.view.Surface;
 import android.view.TextureView;
 
 import java.io.IOException;
@@ -123,13 +122,8 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
     private void updateSurface(final Camera camera, final int width, final int height) {
         if (camera == null || width == 0 || height == 0) return;
         final Camera.Size size = camera.getParameters().getPreviewSize();
-        final int rotation = CameraUtils.getDisplayRotation(mCameraView.getContext());
-        final boolean isPortrait;
-        if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180) {
-            isPortrait = true;
-        } else {
-            isPortrait = false;
-        }
+        final int rotation = mCameraView.getCameraRotation();
+        final boolean isPortrait = (rotation % 180) != 0;
         final int cameraWidth = isPortrait ? size.height : size.width;
         final int cameraHeight = isPortrait ? size.width : size.height;
         final float viewRatio = (float) width / height, cameraRatio = (float) cameraWidth / cameraHeight;
