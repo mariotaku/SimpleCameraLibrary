@@ -38,6 +38,7 @@ public class CameraView extends ViewGroup {
     private MediaRecorder mRecorder;
     private boolean mVideoRecordStarted;
     private boolean mAutoFocusing;
+    private boolean mCameraPreviewStarted;
 
     public CameraView(Context context) {
         this(context, null);
@@ -162,6 +163,7 @@ public class CameraView extends ViewGroup {
         final MediaRecorder recorder = new MediaRecorder();
         setCurrentMediaRecorder(recorder);
         if (shouldSetSizeForRecorder()) {
+            setCameraPreviewStarted(false);
             camera.stopPreview();
             final CamcorderProfile profile = config.profile;
             final Camera.Parameters parameters = camera.getParameters();
@@ -169,6 +171,7 @@ public class CameraView extends ViewGroup {
             dispatchSetParameterBeforeStartPreview(camera, parameters);
             camera.setParameters(parameters);
             camera.startPreview();
+            setCameraPreviewStarted(true);
             notifyPreviewSizeChanged(0, 0);
         }
         final Thread recordThread = new Thread(new RecordVideoRunnable(this, recorder, config, callback));
@@ -237,7 +240,8 @@ public class CameraView extends ViewGroup {
         if (preview == null || !preview.isAddedToCameraView()) return;
         final Camera camera = openCameraIfNeeded();
         if (camera != null && !isInEditMode()) {
-            if (preview.isAttachedToCamera()) {
+            if (mCameraPreviewStarted) {
+                setCameraPreviewStarted(false);
                 camera.stopPreview();
             }
             final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
@@ -248,6 +252,7 @@ public class CameraView extends ViewGroup {
             dispatchSetParameterBeforeStartPreview(camera, parameters);
             camera.setParameters(parameters);
             camera.startPreview();
+            setCameraPreviewStarted(true);
             mCameraRotation = rotation;
         }
         final View child = getChildAt(0);
@@ -426,7 +431,8 @@ public class CameraView extends ViewGroup {
     public void takePicture(final Camera.ShutterCallback shutter, final Camera.PictureCallback jpeg) {
         final Camera camera = getOpeningCamera();
         if (camera == null) return;
-        camera.takePicture(shutter, null, new InternalPictureCallback(jpeg, mSingleShot));
+        setCameraPreviewStarted(false);
+        camera.takePicture(shutter, null, new InternalPictureCallback(this, jpeg, mSingleShot));
     }
 
     /**
@@ -473,6 +479,10 @@ public class CameraView extends ViewGroup {
         if (preview != null) {
             preview.attachMediaRecorder(recorder);
         }
+    }
+
+    protected void setCameraPreviewStarted(boolean cameraPreviewStarted) {
+        mCameraPreviewStarted = cameraPreviewStarted;
     }
 
     public interface VideoRecordCallback extends MediaRecorder.OnInfoListener {
@@ -538,6 +548,7 @@ public class CameraView extends ViewGroup {
                 } catch (IOException e) {
                     Log.w(LOGTAG, e);
                 }
+                cameraView.setCameraPreviewStarted(false);
                 camera.stopPreview();
                 final Camera.Parameters parameters = camera.getParameters();
                 if (cameraView.shouldSetSizeForRecorder()) {
@@ -550,6 +561,7 @@ public class CameraView extends ViewGroup {
                 cameraView.dispatchSetParameterBeforeStartPreview(camera, parameters);
                 camera.setParameters(parameters);
                 camera.startPreview();
+                cameraView.setCameraPreviewStarted(true);
                 if (cameraView.shouldSetSizeForRecorder()) {
                     cameraView.notifyPreviewSizeChanged(0, 0);
                 }
@@ -816,10 +828,12 @@ public class CameraView extends ViewGroup {
     }
 
     private static class InternalPictureCallback implements Camera.PictureCallback {
+        private final CameraView cameraView;
         private final Camera.PictureCallback callback;
         private final boolean singleShot;
 
-        InternalPictureCallback(Camera.PictureCallback callback, boolean singleShot) {
+        InternalPictureCallback(CameraView cameraView, Camera.PictureCallback callback, boolean singleShot) {
+            this.cameraView = cameraView;
             this.callback = callback;
             this.singleShot = singleShot;
         }
@@ -831,6 +845,7 @@ public class CameraView extends ViewGroup {
             }
             if (!singleShot) {
                 camera.startPreview();
+                cameraView.setCameraPreviewStarted(true);
             }
         }
     }

@@ -17,8 +17,6 @@ public interface Preview {
 
     boolean isAddedToCameraView();
 
-    boolean isAttachedToCamera();
-
     void onPreReleaseCamera(Camera camera);
 
     void attachMediaRecorder(MediaRecorder recorder);

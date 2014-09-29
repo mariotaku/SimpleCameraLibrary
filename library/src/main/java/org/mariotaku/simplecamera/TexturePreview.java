@@ -18,7 +18,6 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
 
     private final CameraView mCameraView;
     private final TextureView mTextureView;
-    private boolean mAttachedToCamera;
 
     public TexturePreview(CameraView cameraView) {
         mCameraView = cameraView;
@@ -45,13 +44,8 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
     }
 
     @Override
-    public boolean isAttachedToCamera() {
-        return mAttachedToCamera;
-    }
-
-    @Override
     public void onPreReleaseCamera(Camera camera) {
-        mAttachedToCamera = false;
+        mCameraView.setCameraPreviewStarted(false);
         camera.stopPreview();
         try {
             camera.setPreviewTexture(null);
@@ -104,8 +98,8 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
             camera.setParameters(parameters);
             camera.setPreviewTexture(surface);
             updateSurface(camera, width, height);
-            mAttachedToCamera = true;
             camera.startPreview();
+            mCameraView.setCameraPreviewStarted(true);
             mCameraView.requestLayout();
         } catch (IOException e) {
             e.printStackTrace();
