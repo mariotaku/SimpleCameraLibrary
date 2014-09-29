@@ -17,6 +17,7 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
 
     private final CameraView mCameraView;
     private final SurfaceView mSurfaceView;
+    private boolean mAttachedToCamera;
 
     public SurfacePreview(CameraView cameraView) {
         mCameraView = cameraView;
@@ -42,10 +43,16 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
     }
 
     @Override
+    public boolean isAttachedToCamera() {
+        return mAttachedToCamera;
+    }
+
+    @Override
     public void onPreReleaseCamera(Camera camera) {
         mCameraView.setCameraPreviewStarted(false);
         camera.stopPreview();
         try {
+            mAttachedToCamera = false;
             camera.setPreviewDisplay(null);
         } catch (IOException e) {
             Log.w(CameraView.LOGTAG, e);
@@ -101,6 +108,7 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
             final Camera.Parameters parameters = camera.getParameters();
             camera.setParameters(parameters);
             camera.setPreviewDisplay(holder);
+            mAttachedToCamera = true;
             camera.startPreview();
             mCameraView.setCameraPreviewStarted(true);
             mCameraView.requestLayout();
