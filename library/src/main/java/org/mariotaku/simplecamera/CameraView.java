@@ -66,7 +66,7 @@ public class CameraView extends ViewGroup {
     /**
      * Pictures taken by this library will remain original, so you need to rotate or add EXIF tag by
      * yourself.
-     * <br/>
+     * <br>
      * This method returns the rotate angle you needed for post-processing.
      *
      * @return The rotate angle for post-processing of taken picture
@@ -696,7 +696,7 @@ public class CameraView extends ViewGroup {
          * Sets the path of the output file to be produced.
          *
          * @param outputPath The pathname to use.
-         * @see {@link android.media.MediaRecorder#setOutputFile(java.lang.String)}
+         * @see android.media.MediaRecorder#setOutputFile(java.lang.String)
          */
         public void setOutputPath(String outputPath) {
             checkReadable();
@@ -716,7 +716,7 @@ public class CameraView extends ViewGroup {
          * Pass in the file descriptor of the file to be written.
          *
          * @param outputFileDescriptor an open file descriptor to be written into.
-         * @see {@link android.media.MediaRecorder#setOutputFile(java.io.FileDescriptor)}
+         * @see android.media.MediaRecorder#setOutputFile(java.io.FileDescriptor)
          */
         public void setOutputFileDescriptor(FileDescriptor outputFileDescriptor) {
             checkReadable();
@@ -727,7 +727,7 @@ public class CameraView extends ViewGroup {
          * Gets the audio source to be used for recording.
          *
          * @return The audio source to use
-         * @see {@link android.media.MediaRecorder#setAudioSource(int)}
+         * @see android.media.MediaRecorder#setAudioSource(int)
          */
         public int getAudioSource() {
             return audioSource;

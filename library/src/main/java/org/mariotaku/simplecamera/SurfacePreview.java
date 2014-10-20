@@ -3,7 +3,6 @@ package org.mariotaku.simplecamera;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.util.Log;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -126,13 +125,7 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
                                final int height) {
         if (camera == null || width == 0 || height == 0) return;
         final Camera.Size size = camera.getParameters().getPreviewSize();
-        final int rotation = CameraUtils.getDisplayRotation(mCameraView.getContext());
-        final boolean isPortrait;
-        if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180) {
-            isPortrait = true;
-        } else {
-            isPortrait = false;
-        }
+        final boolean isPortrait = mCameraView.getCameraRotation() % 180 != 0;
         final int cameraWidth = isPortrait ? size.height : size.width;
         final int cameraHeight = isPortrait ? size.width : size.height;
         final float viewRatio = (float) width / height, cameraRatio = (float) cameraWidth / cameraHeight;
