@@ -86,7 +86,7 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
 
     @Override
     public boolean shouldSetSizeForRecorder() {
-        return true;
+        return false;
     }
 
     @Override

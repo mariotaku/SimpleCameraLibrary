@@ -7,6 +7,8 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
+import android.hardware.Camera.Size;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Build;
@@ -39,6 +41,7 @@ public class CameraView extends ViewGroup {
     private boolean mVideoRecordStarted;
     private boolean mAutoFocusing;
     private boolean mCameraPreviewStarted;
+    private Size mPictureSizeBackup;
 
     public CameraView(Context context) {
         this(context, null);
@@ -167,6 +170,7 @@ public class CameraView extends ViewGroup {
             camera.stopPreview();
             final CamcorderProfile profile = config.profile;
             final Camera.Parameters parameters = camera.getParameters();
+            mPictureSizeBackup = parameters.getPictureSize();
             parameters.setPreviewSize(profile.videoFrameWidth, profile.videoFrameHeight);
             parameters.setPictureSize(profile.videoFrameWidth, profile.videoFrameHeight);
             dispatchSetParameterBeforeStartPreview(camera, parameters);
@@ -561,6 +565,7 @@ public class CameraView extends ViewGroup {
                             rotation);
                     parameters.setPreviewSize(previewSize.x, previewSize.y);
                 }
+                cameraView.restorePictureSize(parameters);
                 cameraView.dispatchSetParameterBeforeStartPreview(camera, parameters);
                 camera.setParameters(parameters);
                 camera.startPreview();
@@ -587,6 +592,12 @@ public class CameraView extends ViewGroup {
                 callback.onRecordStopped();
             }
         }
+    }
+
+    private void restorePictureSize(Parameters parameters) {
+        final Camera.Size size = mPictureSizeBackup;
+        if (size == null || parameters == null) return;
+        parameters.setPictureSize(size.width, size.height);
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
