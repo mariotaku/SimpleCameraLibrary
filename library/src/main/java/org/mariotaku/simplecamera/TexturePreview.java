@@ -67,7 +67,7 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
     public void attachMediaRecorder(MediaRecorder recorder) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN)
             throw new UnsupportedOperationException();
-        recorder.setPreviewDisplay(new Surface(mTextureView.getSurfaceTexture()));
+//        recorder.setPreviewDisplay(new Surface(mTextureView.getSurfaceTexture()));
     }
 
 
@@ -75,13 +75,13 @@ public class TexturePreview implements Preview, TextureView.SurfaceTextureListen
     public void detachMediaRecorder(MediaRecorder recorder) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN)
             throw new UnsupportedOperationException();
-        final Camera camera = mCameraView.getOpeningCamera();
-        if (camera == null) return;
-        try {
-            camera.setPreviewTexture(mTextureView.getSurfaceTexture());
-        } catch (IOException e) {
-            Log.w(CameraView.LOGTAG, e);
-        }
+//        final Camera camera = mCameraView.getOpeningCamera();
+//        if (camera == null) return;
+//        try {
+//            camera.setPreviewTexture(mTextureView.getSurfaceTexture());
+//        } catch (IOException e) {
+//            Log.w(CameraView.LOGTAG, e);
+//        }
     }
 
     @Override
