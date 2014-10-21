@@ -168,6 +168,7 @@ public class CameraView extends ViewGroup {
             final CamcorderProfile profile = config.profile;
             final Camera.Parameters parameters = camera.getParameters();
             parameters.setPreviewSize(profile.videoFrameWidth, profile.videoFrameHeight);
+            parameters.setPictureSize(profile.videoFrameWidth, profile.videoFrameHeight);
             dispatchSetParameterBeforeStartPreview(camera, parameters);
             camera.setParameters(parameters);
             camera.startPreview();
