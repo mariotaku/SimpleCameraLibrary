@@ -197,7 +197,7 @@ public class CameraView extends ViewGroup {
         return camera.getParameters().getPreviewSize();
     }
 
-    protected Point getOverrideMeasureSize() {
+    protected Point getOverrideMeasureSize(Camera camera, Parameters parameters, int width, int height, int rotation) {
         return null;
     }
 
@@ -252,7 +252,7 @@ public class CameraView extends ViewGroup {
             final int rotation = CameraUtils.getCameraRotation(CameraUtils.getDisplayRotation(getContext()), getOpeningCameraId());
             camera.setDisplayOrientation(rotation);
             final Camera.Parameters parameters = camera.getParameters();
-            final Point previewSize = getPreviewSize(parameters, measuredWidth, measuredHeight, rotation);
+            final Point previewSize = getPreviewSize(camera, parameters, measuredWidth, measuredHeight, rotation);
             parameters.setPreviewSize(previewSize.x, previewSize.y);
             dispatchSetParameterBeforeStartPreview(camera, parameters);
             camera.setParameters(parameters);
@@ -267,9 +267,10 @@ public class CameraView extends ViewGroup {
         measureChild(child, widthMeasureSpec, heightMeasureSpec);
     }
 
-    private Point getPreviewSize(Camera.Parameters parameters, int width, int height, int rotation) {
+    private Point getPreviewSize(Camera camera, Camera.Parameters parameters, int width, int height,
+                                 int rotation) {
         final List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-        final Point overrideMeasureSize = getOverrideMeasureSize();
+        final Point overrideMeasureSize = getOverrideMeasureSize(camera, parameters, width, height, rotation);
         final Point previewSize;
         if (overrideMeasureSize != null) {
             previewSize = CameraUtils.getBestSize(previewSizes, overrideMeasureSize.x,
@@ -492,6 +493,12 @@ public class CameraView extends ViewGroup {
         mCameraPreviewStarted = cameraPreviewStarted;
     }
 
+    private void restorePictureSize(Parameters parameters) {
+        final Camera.Size size = mPictureSizeBackup;
+        if (size == null || parameters == null) return;
+        parameters.setPictureSize(size.width, size.height);
+    }
+
     public interface VideoRecordCallback extends MediaRecorder.OnInfoListener {
         void onRecordStarted();
 
@@ -561,7 +568,7 @@ public class CameraView extends ViewGroup {
                 if (cameraView.shouldSetSizeForRecorder()) {
                     final int width = cameraView.getWidth(), height = cameraView.getHeight();
                     final int rotation = cameraView.getCameraRotation();
-                    final Point previewSize = cameraView.getPreviewSize(parameters, width, height,
+                    final Point previewSize = cameraView.getPreviewSize(camera, parameters, width, height,
                             rotation);
                     parameters.setPreviewSize(previewSize.x, previewSize.y);
                 }
@@ -592,12 +599,6 @@ public class CameraView extends ViewGroup {
                 callback.onRecordStopped();
             }
         }
-    }
-
-    private void restorePictureSize(Parameters parameters) {
-        final Camera.Size size = mPictureSizeBackup;
-        if (size == null || parameters == null) return;
-        parameters.setPictureSize(size.width, size.height);
     }
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
