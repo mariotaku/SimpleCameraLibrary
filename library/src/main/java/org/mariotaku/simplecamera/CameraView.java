@@ -340,6 +340,27 @@ public class CameraView extends ViewGroup {
         }
     }
 
+    public String getFlashMode() {
+        final Camera camera = getOpeningCamera();
+        if (camera == null) return null;
+        camera.stopPreview();
+        final Parameters parameters = camera.getParameters();
+        final String flashMode = parameters.getFlashMode();
+        camera.startPreview();
+        return flashMode;
+    }
+
+    public boolean setFlashMode(String flashMode) {
+        final Camera camera = getOpeningCamera();
+        if (camera == null) return false;
+        camera.stopPreview();
+        final Parameters parameters = camera.getParameters();
+        parameters.setFlashMode(flashMode);
+        camera.setParameters(parameters);
+        camera.startPreview();
+        return true;
+    }
+
     public boolean isAutoFocusing() {
         return mAutoFocusing;
     }
