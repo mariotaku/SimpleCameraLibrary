@@ -42,6 +42,8 @@ public class CameraView extends ViewGroup {
     private boolean mAutoFocusing;
     private boolean mCameraPreviewStarted;
     private Size mPictureSizeBackup;
+    private String mFlashModeDuringRecording;
+    private String mFlashModeBackup;
 
     public CameraView(Context context) {
         this(context, null);
@@ -520,6 +522,22 @@ public class CameraView extends ViewGroup {
         parameters.setPictureSize(size.width, size.height);
     }
 
+    private String getFlashModeBackup() {
+        return mFlashModeBackup;
+    }
+
+    private void setFlashModeBackup(String flashMode) {
+        mFlashModeBackup = flashMode;
+    }
+
+    private String getFlashModeDuringRecording() {
+        return mFlashModeDuringRecording;
+    }
+
+    public void setFlashModeDuringRecording(String flashMode) {
+        mFlashModeDuringRecording = flashMode;
+    }
+
     public interface VideoRecordCallback extends MediaRecorder.OnInfoListener {
         void onRecordStarted();
 
@@ -592,6 +610,11 @@ public class CameraView extends ViewGroup {
                     final Point previewSize = cameraView.getPreviewSize(camera, parameters, width, height,
                             rotation);
                     parameters.setPreviewSize(previewSize.x, previewSize.y);
+                }
+                final List<String> flashModes = parameters.getSupportedFlashModes();
+                final String flashModeBackup = cameraView.getFlashModeBackup();
+                if (flashModes != null && flashModes.contains(flashModeBackup)) {
+                    parameters.setFlashMode(flashModeBackup);
                 }
                 cameraView.restorePictureSize(parameters);
                 cameraView.dispatchSetParameterBeforeStartPreview(camera, parameters);
@@ -673,6 +696,14 @@ public class CameraView extends ViewGroup {
             try {
                 final Camera camera = cameraView.getOpeningCamera();
                 if (camera == null) return;
+                final String flashModeDuringRecording = cameraView.getFlashModeDuringRecording();
+                final Parameters parameters = camera.getParameters();
+                final List<String> flashModes = parameters.getSupportedFlashModes();
+                if (flashModes != null && flashModes.contains(flashModeDuringRecording)) {
+                    cameraView.setFlashModeBackup(parameters.getFlashMode());
+                    parameters.setFlashMode(flashModeDuringRecording);
+                }
+                camera.setParameters(parameters);
                 camera.unlock();
                 recorder.setCamera(camera);
                 recorder.setOnInfoListener(callback);
