@@ -1,5 +1,6 @@
 package org.mariotaku.simplecamera;
 
+import android.content.Context;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.util.Log;
@@ -20,7 +21,7 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
 
     public SurfacePreview(CameraView cameraView) {
         mCameraView = cameraView;
-        mSurfaceView = new SurfaceView(cameraView.getContext());
+        mSurfaceView = createSurfaceView(cameraView.getContext());
         final SurfaceHolder holder = mSurfaceView.getHolder();
         holder.addCallback(this);
     }
@@ -69,7 +70,7 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
         final Camera camera = mCameraView.getOpeningCamera();
         if (camera == null) return;
         try {
-            camera.setPreviewDisplay(mSurfaceView.getHolder());
+            setCameraPreview(camera, mSurfaceView.getHolder());
         } catch (IOException e) {
             Log.w(CameraView.LOGTAG, e);
         }
@@ -106,7 +107,7 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
         try {
             final Camera.Parameters parameters = camera.getParameters();
             camera.setParameters(parameters);
-            camera.setPreviewDisplay(holder);
+            setCameraPreview(camera, holder);
             mAttachedToCamera = true;
             camera.startPreview();
             mCameraView.setCameraPreviewStarted(true);
@@ -119,6 +120,19 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 //        updateSurface(mCameraView.getOpeningCamera(), holder, width, height);
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        mCameraView.releaseCamera();
+    }
+
+    protected SurfaceView createSurfaceView(Context context) {
+        return new SurfaceView(context);
+    }
+
+    protected void setCameraPreview(Camera camera, SurfaceHolder holder) throws IOException {
+        camera.setPreviewDisplay(holder);
     }
 
     private void updateSurface(final Camera camera, final SurfaceHolder holder, final int width,
@@ -149,10 +163,5 @@ public class SurfacePreview implements Preview, SurfaceHolder.Callback {
             translateY = 0;
         }
         mSurfaceView.layout(translateX, translateY, translateX + actualW, translateY + actualH);
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        mCameraView.releaseCamera();
     }
 }
